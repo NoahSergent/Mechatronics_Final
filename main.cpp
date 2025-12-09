@@ -7,7 +7,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-// NOTE: We should probably keep the ISRs in the main function
+// NOTE: We should probably keep the ISRs in the main file
 #include "debounce.h"
 #include "drop_target.h"
 #include "flipper.h"

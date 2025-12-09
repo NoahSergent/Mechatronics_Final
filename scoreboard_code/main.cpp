@@ -7,7 +7,6 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-
 const uint8_t CMD_INDEX = 1;
 const uint8_t UPPER_INDEX = 2;
 const uint8_t MID_INDEX = 3;
@@ -25,11 +24,17 @@ volatile uint32_t score = 0;
 void configure( void );
 void concatentateScore( void );
 void awaitMessage( void );
-uint8_t receiveByte(void);
+uint8_t receiveByte( void );
 
 int main( void ) {
 
-    configure();
+    // configure();
+    DDRD |= ( 1 << PORTD2 );
+    DDRC = 0x3F;
+
+    // Force one digit & pattern
+    PORTC = 0x3F;
+    PORTD |= ( 1 << PORTD2 );
 
     while ( 1 ) {
         awaitMessage();
@@ -40,32 +45,31 @@ int main( void ) {
 void configure() {
 
     //***********************************************
-// Configure USART
-//***********************************************
-UCSR0A= (0<<U2X0)|(0<<MPCM0);
-UCSR0B = (0<<RXCIE0)|(1<<RXEN0)|(0<<TXEN0)|(1<<UCSZ02); //disable receiver interrupt, Enable receiver, set UCSZ02 for 9-bit format
+    // Configure USART
+    //***********************************************
+    UCSR0A = ( 0 << U2X0 ) | ( 0 << MPCM0 );
+    UCSR0B = ( 0 << RXCIE0 ) | ( 1 << RXEN0 ) | ( 0 << TXEN0 ) | ( 1 << UCSZ02 ); //disable receiver interrupt, Enable receiver, set UCSZ02 for 9-bit format
 
-UCSR0C = (1<<UCSZ01)|(1<<UCSZ00); // Configure 9-bit format
-UBRR0 = 4; //Set baud rate at 250k
-PORTD &= ~(1<<PORTD6);//Set PD6 low to enable RS485 receiver
-sei();
+    UCSR0C = ( 1 << UCSZ01 ) | ( 1 << UCSZ00 ); // Configure 9-bit format
+    UBRR0 = 4;                                  //Set baud rate at 250k
+    PORTD &= ~( 1 << PORTD6 );                  //Set PD6 low to enable RS485 receiver
+    sei();
 
-
-//Configure Pins
-//DDRB = (1<<PORTB0)|(1<<PORTB1)|(1<<PORTB2);
-DDRC = (1<<PORTC5)|(1<<PORTC4)|(1<<PORTC3)|(1<<PORTC2)|(1<<PORTC1)|
-(1<<PORTC0);
-DDRD = (1<<PORTD2)|(1<<PORTD3)|(1<<PORTD4)|(1<<PORTD6)|(1<<PORTD7);
-//*****************************************************************************
-//Configure Timer 1
-//*****************************************************************************
-//Run in CTC (Clear Timer on Compare)
-TCCR1A = (0<<COM1A1)|(0<<COM1A0)|(0<<WGM11)|(0<<WGM10);
-//CTC Mode, CLK/256
-TCCR1B = (0<<WGM13)|(1<<WGM12)|(1<<CS12)|(0<<CS11)|(0<<CS10);
-TIMSK1 = (1<<OCIE1A);
-OCR1A = 62;// (1s)*(16 Mhz/256)
-	//*********************************************************************************
+    //Configure Pins
+    //DDRB = (1<<PORTB0)|(1<<PORTB1)|(1<<PORTB2);
+    DDRC = ( 1 << PORTC5 ) | ( 1 << PORTC4 ) | ( 1 << PORTC3 ) | ( 1 << PORTC2 ) | ( 1 << PORTC1 ) |
+           ( 1 << PORTC0 );
+    DDRD = ( 1 << PORTD2 ) | ( 1 << PORTD3 ) | ( 1 << PORTD4 ) | ( 1 << PORTD6 ) | ( 1 << PORTD7 );
+    //*****************************************************************************
+    //Configure Timer 1
+    //*****************************************************************************
+    //Run in CTC (Clear Timer on Compare)
+    TCCR1A = ( 0 << COM1A1 ) | ( 0 << COM1A0 ) | ( 0 << WGM11 ) | ( 0 << WGM10 );
+    //CTC Mode, CLK/256
+    TCCR1B = ( 0 << WGM13 ) | ( 1 << WGM12 ) | ( 1 << CS12 ) | ( 0 << CS11 ) | ( 0 << CS10 );
+    TIMSK1 = ( 1 << OCIE1A );
+    OCR1A = 62; // (1s)*(16 Mhz/256)
+    //*********************************************************************************
 }
 
 void concatentateScore() {
@@ -73,18 +77,19 @@ void concatentateScore() {
 }
 
 uint8_t receiveByte() {
-    while(!(UCSR0A & (1<<RXC0)));
+    while ( !( UCSR0A & ( 1 << RXC0 ) ) )
+        ;
     return UDR0;
 }
 
 void awaitMessage() {
     rx_buffer_index = 0;
-    rx_buffer[rx_buffer_index++];   // Start Byte
-    rx_buffer[rx_buffer_index++];   // Command
-    rx_buffer[rx_buffer_index++];   // Upper byte
-    rx_buffer[rx_buffer_index++];   // middle byte
-    rx_buffer[rx_buffer_index++];   // lower byte
-    rx_buffer[rx_buffer_index++];   // end byte
+    rx_buffer[rx_buffer_index++]; // Start Byte
+    rx_buffer[rx_buffer_index++]; // Command
+    rx_buffer[rx_buffer_index++]; // Upper byte
+    rx_buffer[rx_buffer_index++]; // middle byte
+    rx_buffer[rx_buffer_index++]; // lower byte
+    rx_buffer[rx_buffer_index++]; // end byte
 }
 
 ISR( TIMER1_COMPA_vect ) {
@@ -153,7 +158,7 @@ ISR( TIMER1_COMPA_vect ) {
         break;
     case 8:
         PORTD = ( PORTD & 0x7F ) | 0x80;
-        ;
+
         PORTC = ( PORTC & 0xC0 ) | 0x3F;
         break;
     case 9:
@@ -170,5 +175,5 @@ ISR( TIMER1_COMPA_vect ) {
         digit_index = 0;
     }
 
-    score++;
+    // score++;
 }
