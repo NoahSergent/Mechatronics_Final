@@ -1,8 +1,8 @@
 /*
- * main.cpp
- *
- * Main file for Mechatronics Final
- */
+* main.cpp
+*
+* Main file for Mechatronics Final
+*/
 
 #include <avr/interrupt.h>
 #include <avr/io.h>
@@ -16,16 +16,20 @@
 #include "masks.h"
 #include "pendulum.h"
 #include "scoreboard.h"
+/*
+Provides functions
+- Scoreboard::SetScore(int)
+- Scoreboard::addToScore(int)
+*/
 #include "spi.h"
 #include "spinner.h"
 #include "top_lanes.h"
 
-
-int main(void) {
-    while(1);
+int main( void ) {
+    Scoreboard::unitTest();
+    while ( 1 )
+        ;
 }
 
-
-ISR(USART_TX_vect) {
-    
+ISR( USART_TX_vect ) {
 }
