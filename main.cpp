@@ -26,9 +26,11 @@ Provides functions
 #include "top_lanes.h"
 
 int main( void ) {
-    Scoreboard::unitTest();
+    // Scoreboard::unitTest();
+    spinner_init();
     while ( 1 )
-        ;
+        spinner_update();
+        
 }
 
 ISR( USART_TX_vect ) {
