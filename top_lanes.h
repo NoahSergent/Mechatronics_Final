@@ -1,47 +1,66 @@
-// /*
-//  * top_lanes.h
-//  *
-//  * 
-//  */
+/*
+ * top_lanes.h
+ *
+ * 
+ */
 
-// #ifndef TOP_LANES_H
-// #define TOP_LANES_H
+#ifndef TOP_LANES_H
+#define TOP_LANES_H
 
-// const uint8_t TOP_LANES_BONUS = 50;
+#include "masks.h"
 
-// class TopLanes {
-// public:
-//     enum LED { LED0,
-//                LED1 };
+class TopLanes {
+public:
+    enum LED : uint8_t { LED0 = 0,
+                         LED1 = 1 };
 
-//     enum Switches { SWITCH0,
-//                     SWITCH1 };
+    enum LEDStatus { On,
+                     Off };
 
-//     static void init() {
-//     }
+    enum Switches { SWITCH0,
+                    SWITCH1 };
 
-//     static void switchTriggered( Switches triggered ) {
-//         switch ( triggered ) {
-//         case SWITCH0:
-            
-//             break;
-//         case SWITCH1:
-//             break;
-//         }
-//     }
+    static void init() {
+        activated = false;
+        LED_0_status = Off;
+        LED_1_status = Off;
+    }
 
-// private:
-//     static void onLED( LED ) {
-//     }
+    static void switchTriggered( Switches triggered ) {
+        switch ( triggered ) {
+        case SWITCH0:
 
-//     static void offLED( LED ) {
-//     }
+            break;
+        case SWITCH1:
+            break;
+        }
+    }
 
-//     static void awardBonus() {
-//         Scoreboard::addToScore( TOP_LANES_BONUS );
-//     }
+    static void swapLED() {
+        if (activated) {
+            toggleLED(LED0);
+            toggleLED(LED1);
+        }
+    }
 
-//     static bool LEDs[2];
-// };
+private:
+    static void onLED( LED target ) {
+    }
 
-// #endif
+    static void offLED( LED target ) {
+    }
+
+    static void toggleLED(LED target) {
+
+    }
+
+    static void awardBonus() {
+        Scoreboard::addToScore( TOP_LANES_BONUS );
+    }
+
+    static LEDStatus LED_0_status;
+    static LEDStatus LED_1_status;
+    static bool activated; // true if one of the lanes has been triggered, false otherwise
+};
+
+#endif
