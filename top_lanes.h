@@ -12,7 +12,7 @@
 
 #include "masks.h"
 
-uint8_t const checkRisingEdges(uint8_t const to_check[2]); //TODO:remove this placeholder
+uint8_t const checkRisingEdges( uint8_t const to_check[2] ); //TODO:remove this placeholder
 
 uint8_t toInt8( auto value ) { return static_cast<uint8_t>( value ); }
 
@@ -24,8 +24,8 @@ public:
     enum LEDStatus : uint8_t { On = 1,
                                Off = 0 };
 
-    enum Switches : uint8_t { SWITCH0=0,
-                    SWITCH1=1 };
+    enum Switches : uint8_t { SWITCH0 = 0,
+                              SWITCH1 = 1 };
 
     static void init() {
         activated = false;
@@ -38,17 +38,16 @@ public:
     }
 
     static void checkSwitches() {
-        uint8_t switch_0_val = checkRisingEdges(TOP_LANE0_SWITCH);
-        uint8_t switch_1_val = checkRisingEdges(TOP_LANE1_SWITCH);
+        uint8_t switch_0_val = checkRisingEdges( TOP_LANE0_SWITCH );
+        uint8_t switch_1_val = checkRisingEdges( TOP_LANE1_SWITCH );
 
-        if (switch_0_val != 0) {
-            switchTriggered(SWITCH0);
+        if ( switch_0_val != 0 ) {
+            switchTriggered( SWITCH0 );
         }
 
-        if (switch_1_val != 0) {
-            switchTriggered(SWITCH1);
+        if ( switch_1_val != 0 ) {
+            switchTriggered( SWITCH1 );
         }
-
     }
 
     static void switchTriggered( Switches triggered ) {

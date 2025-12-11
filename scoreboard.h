@@ -11,8 +11,6 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-
-
 class Scoreboard {
 private:
     // Constants for Scoreboard
@@ -23,9 +21,9 @@ private:
 public:
     static void configure() {
 
-        DDRB |= (1 << PORTB0) | (1 << PORTB1) | (1 << PORTB3);
+        DDRB |= ( 1 << PORTB0 ) | ( 1 << PORTB1 ) | ( 1 << PORTB3 );
 
-        PORTB |= (1 << PORTB3); // DE pin, sets RS485 transceiver to transmit mode.
+        PORTB |= ( 1 << PORTB3 ); // DE pin, sets RS485 transceiver to transmit mode.
 
         UCSR0B = ( ( 1 << TXCIE0 ) | ( 0 << UDRIE0 ) | ( 1 << TXEN0 ) | ( 0 << UCSZ02 ) );
         UCSR0C = ( 1 << UCSZ01 ) | ( 1 << UCSZ00 );
@@ -61,17 +59,21 @@ public:
         setScore( static_cast<uint32_t>( value ) );
     }
 
+    static void addToScore( uint32_t value, bool send_update ) {
+        score = score + value;
+        if ( send_update )
+            sendScoreInterrupt();
+    }
     static void addToScore( uint32_t value ) {
         score = score + value;
-        sendScoreInterrupt();
     }
 
     static void addToScore( uint16_t value ) {
-        addToScore( static_cast<uint32_t>( value ) );
+        addToScore( static_cast<uint32_t>( value ), false );
     }
 
     static void addToScore( uint8_t value ) {
-        addToScore( static_cast<uint32_t>( value ) );
+        addToScore( static_cast<uint32_t>( value ), false );
     }
 
     static const void sendScorePolling( const uint8_t upperbyte, const uint8_t midbyte, const uint8_t lowerbyte ) {
@@ -106,20 +108,17 @@ public:
         sendByteFromBuffer();
     }
 
-
     static void unitTest() {
         configure();
         setScore( ( uint8_t )10 );
         while ( 1 ) {
-            for ( uint8_t i = 0; i < 255; i++ );
+            for ( uint8_t i = 0; i < 255; i++ )
+                ;
             addToScore( ( uint8_t )1 );
         }
     }
 
 private:
-
-    
-
     static volatile uint32_t score;
     static volatile uint8_t lower_score_byte;
     static volatile uint8_t middle_score_byte;
