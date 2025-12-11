@@ -10,7 +10,7 @@
 #include <avr/io.h>
 
 // Top Lanes Constants
-extern const uint8_t TOP_LANES_BONUS;
+extern const uint8_t TOP_LANES_JACKPOT_BONUS;
 
 // SPI Expansion Outputs
 extern const uint8_t TOP_LANE0_LED[2];

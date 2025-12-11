@@ -9,7 +9,7 @@
 #include "masks.h"
 
 // Top Lanes Constants
-const uint8_t TOP_LANES_BONUS = 50;
+const uint8_t TOP_LANES_JACKPOT_BONUS = 50;
 
 // SPI Expansion Outputs
 const uint8_t TOP_LANE0_LED[2] = { 0, 0 };
