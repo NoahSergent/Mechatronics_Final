@@ -40,7 +40,7 @@ public:
         send_buffer[5] = &END_BYTE;
 
         send_index = 0;
-        need_to_send = false;
+        // need_to_send = false;
         overflow = false;
     }
 
@@ -69,11 +69,11 @@ public:
     }
 
     static void addToScore( uint16_t value ) {
-        addToScore( static_cast<uint32_t>( value ), false );
+        addToScore( static_cast<uint32_t>( value ) );
     }
 
     static void addToScore( uint8_t value ) {
-        addToScore( static_cast<uint32_t>( value ), false );
+        addToScore( static_cast<uint32_t>( value ) );
     }
 
     static const void sendScorePolling( const uint8_t upperbyte, const uint8_t midbyte, const uint8_t lowerbyte ) {
@@ -104,7 +104,7 @@ public:
         lower_score_byte = static_cast<uint8_t>( score & 0x00FF );
         upper_score_byte = static_cast<uint8_t>( ( score >> 8 ) & 0x00FF );
         middle_score_byte = static_cast<uint8_t>( ( score >> 16 ) & 0x00FF );
-        need_to_send = true;
+        // need_to_send = true;
         sendByteFromBuffer();
     }
 
@@ -126,7 +126,7 @@ private:
 
     static volatile uint8_t *send_buffer[6];
     static volatile uint8_t send_index;
-    static volatile bool need_to_send;
+    // static volatile bool need_to_send;
     static volatile bool overflow;
 
     static void sendBytePolling( const uint8_t to_send ) {
@@ -139,7 +139,7 @@ private:
         UDR0 = *send_buffer[send_index++];
         if ( send_index >= 6 ) {
             send_index = 0;
-            need_to_send = false;
+            // need_to_send = false;
         }
     }
 };

@@ -135,36 +135,6 @@ Sections to complete
 - void TopLanes::checkSwitches(void)
 */
 
-//global switch input masks - redefine after checking switch location on pinball machine
-extern uint8_t spinner_sm[2] = { 0, 0x02 };
-extern uint8_t hurry_up[2] = { 0, 0x80 };
-extern uint8_t left_lane_sm[2] = { 1, 0x01 };
-extern uint8_t right_lane_sm[2] = { 1, 0x02 };
-
-// global LED output mask - single LED each - redefine after checking LED locations on pinball machine (include current limiting resistors)
-extern uint8_t ramp_lights[2] = { 0, 0x01 };
-extern uint8_t drop_bank_lights[2] = { 0, 0x01 };
-extern uint8_t left_lane_upper_lights[2] = { 0, 0x01 };
-extern uint8_t right_lane_upper_lights[2] = { 0, 0x01 };
-extern uint8_t left_lane_lower_lights[2] = { 0, 0x01 };
-extern uint8_t right_lane_lower_lights[2] = { 0, 0x01 };
-extern uint8_t orbit_lights[2] = { 0, 0x01 };
-extern uint8_t spinner_lights[2] = { 0, 0x01 };
-extern uint8_t newton_lights[2] = { 2, 0xFF }; // This requires 8 LEDs, so a full port, assuming port 3
-extern uint8_t standup_lights[2] = { 0, 0x01 };
-
-// Breadcrumb I/O
-extern uint8_t breadcrumb_pin[2] = { PORTC, PORTC5 };
-
-// SPI Latch I/O
-extern uint8_t switch_latch_pin[2] = { PORTB, PORTB2 };
-extern uint8_t LED_latch_pin[2] = { PORTB, PORTB1 };
-
-// Newtons Pendulum I/O
-extern uint8_t opticalEncoder_A_pin[2] = { PORTC, PORTC3 };
-extern uint8_t opticalEncoder_B_pin[2] = { PORTC, PORTC4 };
-
-extern uint16_t score = 0;
 extern uint8_t score_update = 0;
 
 //void setupTimer1(void);
@@ -230,27 +200,27 @@ uint16_t max_position = 76; // Assumes that 256 options is sufficient, update va
 //DDRC &= ~(1<<PORTC4) | ~(1<<PORTC3); // Encoder channel pins as input
 
 // How to pull data from debounced switch inputs	(place in better location for easy access for everyone)
-extern uint8_t CheckSwitchState( uint8_t switch_mask[2] ) {
+uint8_t CheckSwitchState( uint8_t switch_mask[2] ) {
     return switch_states[switch_mask[0]] & switch_mask[1];
 }
-extern uint8_t CheckFallingEdges( uint8_t switch_mask[2] ) {
+uint8_t CheckFallingEdges( uint8_t switch_mask[2] ) {
     return falling_edges[switch_mask[0]] & switch_mask[1];
 }
-extern uint8_t CheckRisingEdges( uint8_t switch_mask[2] ) {
+uint8_t CheckRisingEdges( uint8_t switch_mask[2] ) {
     return rising_edges[switch_mask[0]] & switch_mask[1]; //may need to be reversed
 }
 
 // How to toggle LED *** Check that this will behave as expected
-extern uint8_t LED_toggle( uint8_t LED_mask[2] ) {
+void LED_toggle( const uint8_t LED_mask[2] ) {
     SPIoutput[LED_mask[0]] ^= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Toggles LED
 }
-extern uint8_t LED_on( uint8_t LED_mask[2] ) {
+void LED_on( const uint8_t LED_mask[2] ) {
     SPIoutput[LED_mask[0]] |= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns on LED
 }
-extern uint8_t LED_off( uint8_t LED_mask[2] ) {
+void LED_off( const uint8_t LED_mask[2] ) {
     SPIoutput[LED_mask[0]] &= ~( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns off LED
 }
-extern uint8_t LED_set( uint8_t LED_mask[2], uint8_t bit_pattern ) {                 //for newton's pendulum
+void LED_set( const uint8_t LED_mask[2], uint8_t bit_pattern ) {           //for newton's pendulum
     SPIoutput[LED_mask[0]] = bit_pattern & ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Sets LEDs in groups
 }
 
@@ -294,16 +264,16 @@ void debounce( volatile uint8_t noisyData[Bank_Size] ) {
 
 int main( void ) {
 
-	spinner_init();
+    spinner_init();
     TopLanes::init();
-	Scoreboard::configure();
+    Scoreboard::configure();
     setupTimer1();
     setupSPI();
     sei();
     //uint16_t LEDproportion = 0;
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 
-    while ( 1 ) {
+    while ( 1 ) { 
         // Add score updates
         if ( updateFlag >= 1 ) {
             debounce( readSwitches );
@@ -338,7 +308,7 @@ int main( void ) {
 
         // Add optical encoder code here
         // Not debouncing due to optical encoder's lack of jitter & use of Grey codes
-        new_channels = ( opticalEncoder_A_pin[0] & ( opticalEncoder_A_pin[1] | opticalEncoder_B_pin[1] ) ) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction.
+        new_channels = ( *opticalEncoder_A_pin->port & ( opticalEncoder_A_pin->bit | opticalEncoder_B_pin->bit ) ) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction.
 
         uint8_t encoderLUTindex = old_channels | new_channels;
         int16_t direction = encoder_table[encoderLUTindex];
@@ -375,7 +345,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -384,7 +354,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -393,7 +363,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -402,7 +372,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -411,7 +381,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -420,7 +390,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -429,7 +399,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                score += pendulumSwitch;
+                Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -450,26 +420,26 @@ ISR( TIMER1_COMPA_vect ) {
 
     // Modified Lab 3 code
     //Latch parallel switch data into shift register
-    switch_latch_pin[1] &= ~( 1 << switch_latch_pin[2] ); // Falling edge
+    *switch_latch_pin->port &= ~( 1 << switch_latch_pin->bit ); // Falling edge
     // *** add dummy loop delay here if needed, only after reducing SPI clock frequency
-    switch_latch_pin[1] |= ( 1 << switch_latch_pin[2] ); //Latch Parallel Data IN
+    *switch_latch_pin->port |= ( 1 << switch_latch_pin->bit ); //Latch Parallel Data IN
 
     SPDR = SPIoutput[LEDcount]; //Start SPI Serial Transfer, farthest LED shift register data being sent
 }
 
-ISR( SPI_STC_vect ) {                       // SPI Serial Transfer Complete
-    breadcrumb_pin[1] ^= breadcrumb_pin[2]; // Toggle breadcrumb pin when entering SPI ISR
+ISR( SPI_STC_vect ) {                             // SPI Serial Transfer Complete
+    *breadcrumb_pin->port ^= breadcrumb_pin->bit; // Toggle breadcrumb pin when entering SPI ISR
 
     readSwitches[LEDcount] = SPDR;   // Store the received SPI data
     if ( ++LEDcount >= Bank_Size ) { // increment LEDcoutn
         //Strobe RCK to SPI transferred data into output shift register
-        LED_latch_pin[1] |= ( 1 << LED_latch_pin[2] ); //Rising edge of low pulse
+        *LED_latch_pin->port |= ( 1 << LED_latch_pin->bit ); //Rising edge of low pulse
 
         LEDcount = 0;
         updateFlag = 1; // trigger debounce in main loop
 
         // *** add dummy loop delay here if needed, only after reducing SPI clock frequency
-        LED_latch_pin[1] &= ~( 1 << LED_latch_pin[2] ); //Latch Serial Output Data
+        *LED_latch_pin->port &= ~( 1 << LED_latch_pin->bit ); //Latch Serial Output Data
     }
     SPDR = SPIoutput[LEDcount]; // Starts next SPI transfer
 }
