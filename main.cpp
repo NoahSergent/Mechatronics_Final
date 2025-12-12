@@ -250,7 +250,9 @@ void debounce(volatile uint8_t noisyData[Bank_Size]) {
 int main(void)
 {
 	//global switch input masks - redefine after checking switch location on pinball machine
-	uint8_t spinner_sm[2] = {0,0x02};
+	uint8_t test_button1[2] = {0,0x01};
+	uint8_t test_button2[2] = {0,0x04};
+	uint8_t spinner_sm[2] = {0,0x01};
 	uint8_t hurry_up[2] = {0,0x80};
 	uint8_t left_lane_sm[2] = {1,0x01};
 	uint8_t right_lane_sm[2] = {1,0x02};
@@ -310,7 +312,9 @@ int main(void)
 	setupTimer1();
 	setupSPI();
     Scoreboard::configure();
+    // Scoreboard::setScore(111);
 	sei();
+    uint16_t temp;
 	//uint16_t LEDproportion = 0;
 	//const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 	
@@ -318,8 +322,25 @@ int main(void)
 		//PORTC ^= (1<<PORTC5);
 		//PORTC ^= (1<<breadcrumb_pin); // Toggle pin C5 for breadcrumb
 		// Add score updates
+        // Scoreboard::setScore(999);
+        debounce(readSwitches);
+
+        if(CheckSwitchState(test_button1)){
+            temp = 1;
+            
+            
+        } else{
+            temp =0;
+        }
+        if(CheckSwitchState(test_button2)){
+            temp = 2;
+            
+        } else{
+            temp = 0;
+        }
+        Scoreboard::setScore(temp);
+        Scoreboard::sendScorePolling();
 		if(updateFlag>=1){
-			debounce(readSwitches);
 			// Add mechanism calls here (include pinball board LED changes)
 			// Flipper_Control();
 			// Ball_Launch();
@@ -329,13 +350,9 @@ int main(void)
 			// Drop_Bank_Targets();
 			// Ramp(); // Optional, if we need the points
 			
-			/* Example use case
-				if(CheckFallingEdges(spinner_sm)){
-					LED_toggle(spinner_lights);
-					score+=10;
-					
-				}
-			*/	
+			//Example use case
+
+				
 					// SPI for loop, delete if not used
 					//for (uint8_t n=0, n<Bank_Size, n++){
 					//}
@@ -345,7 +362,6 @@ int main(void)
 				// To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
 			
 			// Add scoreboard update here
-            Scoreboard::sendScoreInterrupt();
 			
 			updateFlag = 0; // Resets debounce checker for improved speed
 		}
@@ -492,13 +508,14 @@ ISR(TIMER1_COMPA_vect){
 	*breadcrumb_pin->port ^= (1<<breadcrumb_pin->bit); // Toggle breadcrumb pin
 	
 	SPDR = SPIoutput[LEDcount]; //Start SPI Serial Transfer, farthest LED shift register data being sent
-    Scoreboard::addToScore((uint16_t)1);
+    // Scoreboard::addToScore((uint16_t)1);
 	
 }
 
 
 ISR(SPI_STC_vect){	// SPI Serial Transfer Complete
 	//PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin when entering SPI ISR
+
 	
 	readSwitches[LEDcount] = SPDR; // Store the received SPI data
 	if(++LEDcount>=Bank_Size){ // increment LEDcoutn
@@ -511,7 +528,8 @@ ISR(SPI_STC_vect){	// SPI Serial Transfer Complete
 		// *** add dummy loop delay here if needed, only after reducing SPI clock frequency
 		PORTB &= ~(1<<LED_latch_pin); //Latch Serial Output Data
 	} else {
-		SPDR = SPIoutput[LEDcount]; // Starts next SPI transfer
+
+        SPDR = SPIoutput[LEDcount]; // Starts next SPI transfer
 		//PORTC ^= (1<<breadcrumb_pin);
 	}
 	

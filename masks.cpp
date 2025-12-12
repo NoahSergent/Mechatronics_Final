@@ -25,8 +25,8 @@
 
 
 // // SPI Expansion Input Masks TODO redefine after checking switch location on pinball machine
-//     extern const uint8_t TOP_LANE0_SWITCH[2] = {0, 0};
-//     extern const uint8_t TOP_LANE1_SWITCH[2] = {0, 0};
+    extern const uint8_t TOP_LANE0_SWITCH[2] = {1, 1}; // Bank B pin 1
+    extern const uint8_t TOP_LANE1_SWITCH[2] = {1, 2}; // Bank B pin 2
 
 //     extern const uint8_t spinner_sm[2] = { 0, 0x02 };
 

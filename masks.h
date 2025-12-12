@@ -36,8 +36,8 @@
 
 
 // // SPI Expansion Input Masks
-//     extern const uint8_t TOP_LANE0_SWITCH[2];
-//     extern const uint8_t TOP_LANE1_SWITCH[2];
+    extern const uint8_t TOP_LANE0_SWITCH[2];
+    extern const uint8_t TOP_LANE1_SWITCH[2];
 
 //     extern const uint8_t spinner_sm[2];
 
