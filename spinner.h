@@ -8,8 +8,9 @@
 #define SPINNER_H
 
 #include <avr/io.h>
+#include "scoreboard.h"
 
-volatile uint16_t score = 0;
+
 
 void spinner_init() {
 	// PD3 as input (spinner switch)
@@ -34,7 +35,7 @@ void spinner_update() {
 		PORTD ^= (1 << PIND7);
 
 		// Add points
-		score += 5;
+		// Scoreboard::addToScore((uint32_t) 5);
 
 		// Update for next cycle
 		prev_state = curr_state;
