@@ -1,0 +1,13 @@
+#include "scoreboard.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+
+int main(void) {
+    DDRD = (1 << PORTD7);
+    while(1) {
+        for (uint16_t i = 0; 0 < 65530; i++);
+        PORTD ^= (1 << PORTD7);
+        
+    }
+}

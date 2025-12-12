@@ -35,7 +35,7 @@ void spinner_update() {
 		PORTD ^= (1 << PIND7);
 
 		// Add points
-		Scoreboard::addToScore((uint32_t) 5);
+		// Scoreboard::addToScore((uint32_t) 5);
 
 		// Update for next cycle
 		prev_state = curr_state;

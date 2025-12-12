@@ -265,8 +265,8 @@ void debounce( volatile uint8_t noisyData[Bank_Size] ) {
 int main( void ) {
 
     spinner_init();
-    TopLanes::init();
-    Scoreboard::configure();
+    // TopLanes::init();
+    // Scoreboard::configure();
     setupTimer1();
     setupSPI();
     sei();
@@ -281,7 +281,7 @@ int main( void ) {
             // Flipper_Control();
             // Ball_Launch();
             spinner_update();
-            TopLanes::checkSwitches();
+            // TopLanes::checkSwitches();
             // Hurry-up_Targets();
             // Drop_Bank_Targets();
             // Ramp(); // Optional, if we need the points
@@ -301,7 +301,7 @@ int main( void ) {
             // when something happens, begin counting down score, if it hits zero (underflow triggers ISR) drive both flipper solenoids high regardless of user input - or deactivate flippers entirely / turn flipper high PWM to 10%
             // To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
 
-            Scoreboard::sendScoreInterrupt(); // Update scoreboard
+            // Scoreboard::sendScoreInterrupt(); // Update scoreboard
 
             updateFlag = 0; // Resets debounce checker for improved speed
         }
@@ -345,7 +345,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -354,7 +354,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -363,7 +363,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -372,7 +372,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -381,7 +381,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -390,7 +390,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
@@ -399,7 +399,7 @@ int main( void ) {
             //LED_set(newton_lights,pendulumSwitch);
             SPIoutput[newton_lights[0]] = pendulumSwitch & ( SPIoutput[newton_lights[0]] & newton_lights[1] );
             if ( score_update == pendulumSwitch ) {
-                Scoreboard::addToScore(pendulumSwitch);
+                // Scoreboard::addToScore(pendulumSwitch);
             } else {
                 score_update = pendulumSwitch;
             }
