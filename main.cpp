@@ -111,6 +111,7 @@ Sections to complete
 */
 
 #include <avr/io.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
 #include "scoreboard.h"
 #include "masks.h"
@@ -150,7 +151,7 @@ void setupTimer1(void){
 	TCCR1B = (0<<ICNC1)|(0<<ICES1)|(0<<WGM13)|(1<<WGM12)|(1<<CS12)|(0<<CS11)|(0<<CS10); // Set timer 1 to CTC mode and prescaler to 256.
 	//TCCR1C = (0<<FOC1A)|(0<<FOC1B);
 	// update OSR1A based on longest SPI duration to guarantee no collisions
-	OCR1A = 6249;  // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
+	OCR1A = 62499;  //6249 // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
 	TIMSK1 = (0<<ICIE1)|(0<<OCIE1B)|(1<<OCIE1A)|(0<<TOIE1);
 	//TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
 }
@@ -165,7 +166,7 @@ void setupSPI(void) // Setup SPI Pins
 	
 	//PORTB |= (1<<PORTB2);
 	PORTB |= (1<<PORTB2); // Sets switch latch pin high, requires output to avoid SS conflict
-	PORTB |= (1<<PORTB1); // Sets LED latch pin high
+	PORTB &= ~(1<<PORTB1); // Sets LED latch pin high
 
 	SPCR = (1<<SPIE)|(1<<SPE)|(0<<DORD)|(1<<MSTR)|(0<<CPOL)|(0<<CPHA)|(1<<SPR1)|(1<<SPR0);
 	//clock speed (f_osc/128) if double is low, slowest possible speed for chip (125kHz update)
