@@ -111,40 +111,13 @@ Sections to complete
 */
 
 #include <avr/io.h>
-#include <avr/io.h>
 #include <avr/interrupt.h>
 #include "scoreboard.h"
 #include "masks.h"
 
-#define Buffer_Length 2 // Modify by checking with scope for debounce time in switches - adjust with Timer1 clock speed
-#define Bank_Size 3 // Modify if we ever use more or less than three banks of switches
+
 
 void Setup(void){
-	
-	
-	// Switch Masks
-	//global switch input masks - redefine after checking switch location on pinball machine
-	uint8_t spinner_sm[2] = {0,0x02};
-	uint8_t hurry_up[2] = {0,0x80};
-	uint8_t left_lane_sm[2] = {1,0x01};
-	uint8_t right_lane_sm[2] = {1,0x02};
-
-	// global LED output mask - single LED each - redefine after checking LED locations on pinball machine (include current limiting resistors)
-	uint8_t ramp_lights[2] = {0,0x01};
-	uint8_t drop_bank_lights[2] = {0,0x01};
-	uint8_t left_lane_upper_lights[2] = {0,0x01};
-	uint8_t right_lane_upper_lights[2] = {0,0x01};
-	uint8_t left_lane_lower_lights[2] = {0,0x01};
-	uint8_t right_lane_lower_lights[2] = {0,0x01};
-	uint8_t orbit_lights[2] = {0,0x01};
-	uint8_t spinner_lights[2] = {0,0x01};
-	uint8_t newton_lights[2] = {2,0xFF}; // This requires 8 LEDs, so a full port, assuming port 3
-	uint8_t standup_lights[2] = {0,0x01};
-	
-	
-	
-	
-	
 	
 	
 	// SPI
@@ -160,14 +133,6 @@ void Setup(void){
 	//SPDR is data register
 	
 	
-	uint8_t switch_latch_pin = PORTB2; // PORTB
-	uint8_t LED_latch_pin = PORTB1; // PORTB
-	
-	
-	// Breadcrumb
-	uint8_t breadcrumb_pin = PORTC5;
-	
-	
 	// Timer1
 	TCCR1A = (0<<COM1A1)|(0<<COM1A0)|(0<<COM1B1)|(0<<COM1B0)|(0<<WGM11)|(0<<WGM10); // CTC mode
 	TCCR1B = (0<<ICNC1)|(0<<ICES1)|(0<<WGM13)|(1<<WGM12)|(1<<CS12)|(0<<CS11)|(0<<CS10); // Set timer 1 to CTC mode and prescaler to 256.
@@ -177,15 +142,6 @@ void Setup(void){
 	TIMSK1 = (0<<ICIE1)|(0<<OCIE1B)|(1<<OCIE1A)|(0<<TOIE1);
 	//TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
 	
-	
-	
-	
-	
-	
-	
-	// Pendulum
-	uint8_t opticalEncoder_A_pin = PORTC3;
-	uint8_t opticalEncoder_B_pin = PORTC4;
 
 	uint16_t score = 0;
 	uint8_t score_update = 0;
@@ -212,18 +168,6 @@ void Setup(void){
 uint8_t input_data;
 
 
-// SPI Global
-volatile uint8_t SPIoutput[Bank_Size] = {0}; // LED data
-volatile uint8_t LEDcount = 0;
-volatile uint8_t readSwitches[Bank_Size] = {0}; // Bank_Size is 3 by default
-volatile uint8_t updateFlag = 0; // SPI full Bank_Index data received
-
-// Debounce Global
-volatile uint8_t noisySwitchSet[Bank_Size][Buffer_Length] = {0}; // sets all inputs to 0 initially
-volatile uint8_t circularBuff[Bank_Size][Buffer_Length] = {0};
-volatile uint8_t rising_edges[Bank_Size] = {0};
-volatile uint8_t falling_edges[Bank_Size] = {0};
-volatile uint8_t switch_states[Bank_Size] = {0};
 void debounce(volatile uint8_t noisyData[Bank_Size]);
 
 
@@ -270,12 +214,12 @@ void pendulum(void);
 int main(void)
 {
 	Setup();
+	Scoreboard::configure();
 	sei();
 	//uint16_t LEDproportion = 0;
 	//const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 	
-	Scoreboard::configure();
-    // Scoreboard::setScore(111);
+    Scoreboard::setScore(111);
 
     while (1) {
 		//PORTC ^= (1<<PORTC5);
@@ -284,10 +228,12 @@ int main(void)
 		if (updateFlag==1){
 			debounce(readSwitches);
 			//std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
+
+			// This for loop sets the outputs equal to the inputs
 			for (int z=0; z<Bank_Size; z++){
 				SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
 				if (z==3){
-					PORTC ^= (1<<PORTC5); // breadcrumb_pin // Toggle breadcrumb
+					*breadcrumb_pin->port ^= (1<<breadcrumb_pin->bit); // breadcrumb_pin // Toggle breadcrumb
 				}
 			}
 			// Add mechanism calls here (include pinball board LED changes)
@@ -315,6 +261,8 @@ int main(void)
 				// To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
 			
 			// Add scoreboard update here
+			Scoreboard::addToScore((uint16_t)1);
+			Scoreboard::sendScoreInterrupt();
 			
 			updateFlag=0;
 		}
@@ -368,8 +316,8 @@ void pendulum(void) {
 ISR(TIMER1_COMPA_vect){
 	//PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
 	
-	PORTB &= ~(1<<PORTB2); // Falling edge
-	PORTB |= (1<<PORTB2); //Latch Parallel Data IN
+	*switch_latch_pin->port &= ~(1<<switch_latch_pin->bit); // Falling edge
+	*switch_latch_pin->port |= (1<<switch_latch_pin->bit); // Rising edge
 	SPDR = SPIoutput[LEDcount];// SPIoutput[LEDcount];//input_data;//Start Serial Transfer
 }
 
@@ -382,7 +330,8 @@ ISR(SPI_STC_vect) {	// SPI Serial Transfer Complete
 		SPDR = SPIoutput[LEDcount];
 	} else { // LEDcount >= Bank_Size	Keep in mind uint8_t limit on LEDcount
 		//Strobe RCK to SPI transferred data into output register
-		PORTB |= (1<<PORTB1); //Rising edge of low pulse
+		*LED_latch_pin->port |= (1<<LED_latch_pin->bit); //Rising edge of low pulse
+		*LED_latch_pin->port &= ~(1<<LED_latch_pin->bit); //Latch Serial Output Data
 		// add dummy loop delay here if needed
 		PORTB &= ~(1<<PORTB1);//Latch Serial Output Data
 		LEDcount=0;
