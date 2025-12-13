@@ -67,6 +67,20 @@ extern volatile uint8_t switch_states[Bank_Size] = {0};
     extern const uint8_t standup_lights[2] = { 0, 0x01 };
 
 
+// PWM Variables
+    extern const uint8_t flipper_mask0[2] = {0, 1};
+    extern const uint8_t flipper_mask1[2] = {0, 0b00000100};
+    extern const uint8_t eos_mask0[2] = {0, 0b00000010};
+    extern const uint8_t eos_mask1[2] = {0, 0b00001000};
+
+    extern const uint8_t kHold_Power = 25; // Define Holding OCR0A/B Value
+    extern const uint8_t kHit_Power = 255; // Define Flipping 0CR0A/B Value. %DC = 0CR0A / 255
+    extern uint8_t flipper_button0 = 1; // Global Flipper state variable
+    extern uint8_t EOS_switch0 = 0; //Global EOS State variable
+    extern uint8_t flipper_button1 = 1; // Global Flipper state variable
+    extern uint8_t EOS_switch1 = 0; //Global EOS State variable
+ 
+
 
 
 

@@ -3,7 +3,7 @@
  *
  * Created: 12/2/2025 1:54:58 PM
  * Author : Griffin
- */ 
+ */
 
 /*
 Sections to complete
@@ -110,100 +110,88 @@ Sections to complete
 		******* Need to make a full system diagram - see what online tools the team wants to use for this *******
 */
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include "scoreboard.h"
 #include "masks.h"
+#include "scoreboard.h"
+#include <avr/interrupt.h>
+#include <avr/io.h>
 
+void Setup( void ) {
+	// flipper setup
+	DDRD |= (1<<PORTD6)| (1<<PORTD5);
+    TCCR0A = (1<<COM0A1)|(0<<COM0A0)|(1<<COM0B1)|(0<<COM0B0)|(1<<WGM01)|(1<<WGM00); // Setup Fast PWM Mode for Channel A and Channel B
+	TCCR0B = (0<<WGM02)|(0<<CS02)|(1<<CS01)|(0<<CS00); // Define Clock Source Prescaler
+	OCR0A = 0; //Initialized PWM Duty Cycle for flipper 0
+	OCR0B = 0; //Initialized PWM Duty Cycle for flipper 1
 
+    // SPI
+    DDRB = ( 1 << PORTB1 ) | ( 1 << PORTB2 ) | ( 1 << PORTB3 ) | ( 0 << PORTB4 ) | ( 1 << PORTB5 );
+    DDRC = ( 1 << PORTC5 );
+    //DDRD = (1 << PORTD0);
 
-void Setup(void){
-	
-	
-	// SPI
-	DDRB = (1<<PORTB1)|(1<<PORTB2)|(1<<PORTB3)|(0<<PORTB4)|(1<<PORTB5);
-	DDRC = (1<<PORTC5);
-	//DDRD = (1 << PORTD0);
-	
-	PORTB |= (1 << PORTB2);
-	PORTB &= ~(1 << PORTB1);
-	
-	SPCR = (1<<SPIE)|(1<<SPE)|(0<<DORD)|(1<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(0<<SPR0); //clock speed f_osc/128 if double is high
-	SPSR = (1 << SPI2X); // can read SPIF from bit 7, and WCOL from bit 6
-	//SPDR is data register
-	
-	
-	// Timer1
-	TCCR1A = (0<<COM1A1)|(0<<COM1A0)|(0<<COM1B1)|(0<<COM1B0)|(0<<WGM11)|(0<<WGM10); // CTC mode
-	TCCR1B = (0<<ICNC1)|(0<<ICES1)|(0<<WGM13)|(1<<WGM12)|(1<<CS12)|(0<<CS11)|(0<<CS10); // Set timer 1 to CTC mode and prescaler to 256.
-	//TCCR1C = (0<<FOC1A)|(0<<FOC1B);
-	// update OSR1A based on longest SPI duration to guarantee no collisions
-	OCR1A = 3124; // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
-	TIMSK1 = (0<<ICIE1)|(0<<OCIE1B)|(1<<OCIE1A)|(0<<TOIE1);
-	//TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
-	
+    PORTB |= ( 1 << PORTB2 );
+    PORTB &= ~( 1 << PORTB1 );
 
-	uint16_t score = 0;
-	uint8_t score_update = 0;
-	
-	// Newton Pendulum variables
-	// CCW = +1, CW = -1, index select is (2-bit old values),(2-bit new values)
-	const int16_t encoder_table[16] = {
-		0,1,-1,255,
-		-1,0,255,1,
-		1,255,0,-1,
-	255,-1,1,0};
-	volatile int16_t position = 0;
-	volatile uint8_t old_channels = 0;
-	volatile uint8_t new_channels = 0;
-	uint8_t pendulumSwitch = 0;
-	uint16_t max_position = 76;	// Assumes that 256 options is sufficient, update value after testing
-	//DDRC &= ~(1<<PORTC4) | ~(1<<PORTC3); // Encoder channel pins as input
-	
-	
+    SPCR = ( 1 << SPIE ) | ( 1 << SPE ) | ( 0 << DORD ) | ( 1 << MSTR ) | ( 0 << CPOL ) | ( 0 << CPHA ) | ( 0 << SPR1 ) | ( 0 << SPR0 ); //clock speed f_osc/128 if double is high
+    SPSR = ( 1 << SPI2X );                                                                                                               // can read SPIF from bit 7, and WCOL from bit 6
+    //SPDR is data register
+
+    // Timer1
+    TCCR1A = ( 0 << COM1A1 ) | ( 0 << COM1A0 ) | ( 0 << COM1B1 ) | ( 0 << COM1B0 ) | ( 0 << WGM11 ) | ( 0 << WGM10 );           // CTC mode
+    TCCR1B = ( 0 << ICNC1 ) | ( 0 << ICES1 ) | ( 0 << WGM13 ) | ( 1 << WGM12 ) | ( 1 << CS12 ) | ( 0 << CS11 ) | ( 0 << CS10 ); // Set timer 1 to CTC mode and prescaler to 256.
+    //TCCR1C = (0<<FOC1A)|(0<<FOC1B);
+    // update OSR1A based on longest SPI duration to guarantee no collisions
+    OCR1A = 3124; // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
+    TIMSK1 = ( 0 << ICIE1 ) | ( 0 << OCIE1B ) | ( 1 << OCIE1A ) | ( 0 << TOIE1 );
+    //TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
+
+    uint16_t score = 0;
+    uint8_t score_update = 0;
+
+    // Newton Pendulum variables
+    // CCW = +1, CW = -1, index select is (2-bit old values),(2-bit new values)
+    const int16_t encoder_table[16] = {
+        0, 1, -1, 255, -1, 0, 255, 1, 1, 255, 0, -1, 255, -1, 1, 0
+    };
+    volatile int16_t position = 0;
+    volatile uint8_t old_channels = 0;
+    volatile uint8_t new_channels = 0;
+    uint8_t pendulumSwitch = 0;
+    uint16_t max_position = 76; // Assumes that 256 options is sufficient, update value after testing
+                                //DDRC &= ~(1<<PORTC4) | ~(1<<PORTC3); // Encoder channel pins as input
 }
-
-
 
 uint8_t input_data;
 
+void debounce( volatile uint8_t noisyData[Bank_Size] );
 
-void debounce(volatile uint8_t noisyData[Bank_Size]);
+void pendulum( void );
 
+// How to pull data from debounced switch inputs	(place in better location for easy access for everyone)
+uint8_t CheckSwitchState( uint8_t const switch_mask[2] ) {
+    return switch_states[switch_mask[0]] & switch_mask[1];
+}
+uint8_t CheckFallingEdges( uint8_t const switch_mask[2] ) {
+    return falling_edges[switch_mask[0]] & switch_mask[1];
+}
+uint8_t CheckRisingEdges( uint8_t const switch_mask[2] ) {
+    return rising_edges[switch_mask[0]] & switch_mask[1]; //may need to be reversed
+}
 
-void pendulum(void);
+// How to toggle LED *** Check that this will behave as expected
+uint8_t LED_toggle( uint8_t LED_mask[2] ) {
+    return SPIoutput[LED_mask[0]] ^= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Toggles LED
+}
+uint8_t LED_on( uint8_t LED_mask[2] ) {
+    return SPIoutput[LED_mask[0]] |= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns on LED
+}
+uint8_t LED_off( uint8_t LED_mask[2] ) {
+    return SPIoutput[LED_mask[0]] &= ~( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns off LED
+}
+uint8_t LED_set( uint8_t LED_mask[2], uint8_t bit_pattern ) {                               //for newton's pendulum
+    return SPIoutput[LED_mask[0]] = bit_pattern & ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Sets LEDs in groups
+}
 
-
-
-/*
-			// How to pull data from debounced switch inputs	(place in better location for easy access for everyone)
-				uint8_t CheckSwitchState(uint8_t switch_mask[2]) {
-					return switch_states[switch_mask[0]] & switch_mask[1];
-				}
-				uint8_t CheckFallingEdges(uint8_t switch_mask[2]) {
-					return falling_edges[switch_mask[0]] & switch_mask[1];
-				}
-				uint8_t CheckRisingEdges(uint8_t switch_mask[2]){
-					return rising_edges[switch_mask[0]] & switch_mask[1]; //may need to be reversed
-				}
-	
-
-				// How to toggle LED *** Check that this will behave as expected
-				uint8_t LED_toggle (uint8_t LED_mask[2]) {
-					return SPIoutput[LED_mask[0]] ^= (SPIoutput[LED_mask[0]] & LED_mask[1]); // Toggles LED
-				}
-				uint8_t LED_on (uint8_t LED_mask[2]) {
-					return SPIoutput[LED_mask[0]] |= (SPIoutput[LED_mask[0]] & LED_mask[1]); // Turns on LED
-				}
-				uint8_t LED_off (uint8_t LED_mask[2]) {
-					return SPIoutput[LED_mask[0]] &= ~(SPIoutput[LED_mask[0]] & LED_mask[1]); // Turns off LED
-				}
-				uint8_t LED_set (uint8_t LED_mask[2], uint8_t bit_pattern) { //for newton's pendulum
-					return SPIoutput[LED_mask[0]] = bit_pattern & (SPIoutput[LED_mask[0]] & LED_mask[1]); // Sets LEDs in groups
-				}
-
-
-				/* Example use case
+/* Example use case
 					if(CheckFallingEdges(spinner_sm)){
 						LED_toggle(spinner_lights);
 						score+=10;
@@ -211,134 +199,192 @@ void pendulum(void);
 				*/
 
 
-int main(void)
-{
-	Setup();
-	Scoreboard::configure();
-	sei();
-	//uint16_t LEDproportion = 0;
-	//const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
-	
-    Scoreboard::setScore(111);
+uint8_t previous_falling_edges = 0;
+const uint8_t flipper_mask[2] = {0,1};
+void UpdateFlipper0();
+uint8_t flipper_state0 = 0; //Track the state of the flipper
+uint16_t high_count0 = 0; // Track Duration of high power pulse
+uint16_t high_count_max = 1;
 
-    while (1) {
-		//PORTC ^= (1<<PORTC5);
-		//PORTC ^= (1<<breadcrumb_pin); // Toggle pin C5 for breadcrumb
-		// Add score updates
-		if (updateFlag==1){
-			debounce(readSwitches);
-			//std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
+int main( void ) {
+    Setup();
+    Scoreboard::configure();
+    sei();
+    //uint16_t LEDproportion = 0;
+    //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 
-			// This for loop sets the outputs equal to the inputs
-			for (int z=0; z<Bank_Size; z++){
-				SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
-				if (z==3){
-					*breadcrumb_pin->port ^= (1<<breadcrumb_pin->bit); // breadcrumb_pin // Toggle breadcrumb
-				}
-			}
-			// Add mechanism calls here (include pinball board LED changes)
-			// Flipper_Control();
-			// Ball_Launch();
-			// Spinner();
-			// Top_Lanes();
-			// Hurry-up_Targets();
-			// Drop_Bank_Targets();
-			// Ramp(); // Optional, if we need the points
-			
-			/* Example use case
+    Scoreboard::setScore( 111 );
+
+    while ( 1 ) {
+        //PORTC ^= (1<<PORTC5);
+        //PORTC ^= (1<<breadcrumb_pin); // Toggle pin C5 for breadcrumb
+        // Add score updates
+        if ( updateFlag == 1 ) {
+            debounce( readSwitches );
+            //std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
+
+			// Flipper
+			Scoreboard::setScore(0);
+			// uint16_t temp_score = Scoreboard::getScore();
+			// flipper_button0 = CheckSwitchState(flipper_mask0);
+			// if (!(flipper_button0 != 0)) {
+			// 	temp_score += 1;
+			// }
+			// flipper_button1 = CheckSwitchState(flipper_mask1);
+			// if (!(flipper_button1 != 0)) temp_score +=10000;
+			// EOS_switch0 = CheckSwitchState(eos_mask0);
+			// if (EOS_switch0 != 0) temp_score += 100;
+			// EOS_switch1 = CheckSwitchState(eos_mask1);
+			// if (EOS_switch1 != 0) temp_score += 1000;
+
+			// Scoreboard::setScore(temp_score);
+
+			UpdateFlipper0();
+
+            // This for loop sets the outputs equal to the inputs
+            for ( int z = 0; z < Bank_Size; z++ ) {
+                SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
+                if ( z == 3 ) {
+                    *breadcrumb_pin->port ^= ( 1 << breadcrumb_pin->bit ); // breadcrumb_pin // Toggle breadcrumb
+                }
+            }
+            // Add mechanism calls here (include pinball board LED changes)
+            // Flipper_Control();
+            // Ball_Launch();
+            // Spinner();
+            // Top_Lanes();
+            // Hurry-up_Targets();
+            // Drop_Bank_Targets();
+            // Ramp(); // Optional, if we need the points
+
+            /* Example use case
 				if(CheckFallingEdges(spinner_sm)){
 					LED_toggle(spinner_lights);
 					score+=10;
 					
 				}
-			*/	
-					// SPI for loop, delete if not used
-					//for (uint8_t n=0, n<Bank_Size, n++){
-					//}
+			*/
+            // SPI for loop, delete if not used
+            //for (uint8_t n=0, n<Bank_Size, n++){
+            //}
+
+            // Update rules if additional points are needed
+            // when something happens, begin counting down score, if it hits zero (underflow triggers ISR) drive both flipper solenoids high regardless of user input - or deactivate flippers entirely / turn flipper high PWM to 10%
+            // To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
+
+            // Add scoreboard update here
+			// if (previous_falling_edges != falling_edges[1]) Scoreboard::setScore(uint16_t(falling_edges[1]));
+            Scoreboard::sendScoreInterrupt();
+			// previous_falling_edges = falling_edges[1];
 			
-			// Update rules if additional points are needed
-			// when something happens, begin counting down score, if it hits zero (underflow triggers ISR) drive both flipper solenoids high regardless of user input - or deactivate flippers entirely / turn flipper high PWM to 10%
-				// To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
-			
-			// Add scoreboard update here
-			Scoreboard::addToScore((uint16_t)1);
-			Scoreboard::sendScoreInterrupt();
-			
-			updateFlag=0;
+
+            updateFlag = 0;
+        }
+
+        pendulum();
+    }
+}
+
+void debounce( volatile uint8_t noisyData[Bank_Size] ) {
+    static uint8_t switchIndex = 0;
+    //static uint8_t bankIndex = 0;
+
+    uint8_t stable_high[Bank_Size];
+    for ( uint8_t i = 0; i < Bank_Size; ++i ) {
+        stable_high[i] = 0xFF;                       //Initialize temporary stable_high all high
+        circularBuff[i][switchIndex] = noisyData[i]; // i was bankIndex
+    }
+    uint8_t stable_low[Bank_Size] = { 0 }; //Initialize temporary stable_low all low
+
+    //Loop through all historical switch samples to check for stable highs and lows
+    for ( uint8_t j = 0; j < Bank_Size; ++j ) {
+        for ( uint8_t k = 0; k < Buffer_Length; ++k ) {
+            //"And" for stable high (all 1's will produce "1" for stable high)
+            stable_high[j] &= circularBuff[j][k];
+            //"Or" for stable low (all 0's will produce "0" for stable low)
+            stable_low[j] |= circularBuff[j][k];
+        }
+
+        rising_edges[j] = ( ~switch_states[j] ) & stable_high[j];                 //Detect Rising Edges
+        falling_edges[j] = switch_states[j] & ( ~stable_low[j] );                 //Detect Falling Edges
+        switch_states[j] = stable_high[j] | ( switch_states[j] & stable_low[j] ); //Update switch states
+        //Update sample index and wrap if necessary
+        if ( ++switchIndex >= Buffer_Length ) {
+            switchIndex = 0; //wrap
+        }
+    }
+}
+
+void pendulum( void ) {
+}
+
+void UpdateFlipper0() {
+
+	flipper_button0 = CheckSwitchState(flipper_mask0);
+	EOS_switch0 = CheckSwitchState(eos_mask0);
+	Scoreboard::setScore(flipper_state0);
+	if((flipper_button0 != 0)){//Button Not Pressed
+		flipper_state0 = 0; //Flipper at rest
+		OCR0A = 0; //Set at 0 power
+		//*************************************
+	}
+	else{//Button Pressed
+		switch(flipper_state0) {
+			case 0: //New Flip
+				flipper_state0 = 1;//set state to high power
+				OCR0A = kHit_Power; // Set to flipping power
+				high_count0 = 0; // Reset 40ms pulse counter
+				break;
+			case 1: //High Power Flip
+				if(high_count0<=high_count_max){ // Still flipping
+					high_count0++;  //increment to record another 0.1ms
+				} else { //Flip over, switch to low power holding
+					flipper_state0=2; //Update state to low power hold
+				}
+				break;
+			case 2: //Low Power Hold
+				if(!(EOS_switch0 != 0)) {  //EOS Switch is closed, flipper is falling
+					flipper_state0=1; //Restart another high powered pulse
+					high_count0=0;  
+					OCR0A = kHit_Power; // Hit Power
+				}
+				else {
+					OCR0A = kHold_Power; // Hold Power
+				}
+				break;
+			default: // state that should never be reached
+				flipper_state0 = 0; // Flipper at rest
+				OCR0A = 0; // Set power to 0
+
+				}
 		}
-		
-		pendulum();
-		
-		
-		
-	}
 }
 
+ISR( TIMER1_COMPA_vect ) {
+    //PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
 
-void debounce(volatile uint8_t noisyData[Bank_Size]) {
-	static uint8_t switchIndex = 0;
-	//static uint8_t bankIndex = 0;
-	
-	uint8_t stable_high[Bank_Size];
-	for (uint8_t i=0; i<Bank_Size; ++i){
-		stable_high[i] = 0xFF; //Initialize temporary stable_high all high
-		circularBuff[i][switchIndex] = noisyData[i]; // i was bankIndex
-	}
-	uint8_t stable_low[Bank_Size] = {0}; //Initialize temporary stable_low all low
-	
-	
-	
-	//Loop through all historical switch samples to check for stable highs and lows
-	for (uint8_t j=0; j<Bank_Size; ++j){
-		for (uint8_t k=0; k<Buffer_Length; ++k){
-			//"And" for stable high (all 1's will produce "1" for stable high)
-			stable_high[j] &= circularBuff[j][k];
-			//"Or" for stable low (all 0's will produce "0" for stable low)
-			stable_low[j] |= circularBuff[j][k];
-		}
-		
-		rising_edges[j] = (~switch_states[j]) & stable_high[j];//Detect Rising Edges
-		falling_edges[j] = switch_states[j] & (~stable_low[j]);//Detect Falling Edges
-		switch_states[j] = stable_high[j] | (switch_states[j] & stable_low[j]);//Update switch states
-		//Update sample index and wrap if necessary
-		if(++switchIndex>=Buffer_Length){
-			switchIndex = 0;//wrap
-		}
-	}
+    *switch_latch_pin->port &= ~( 1 << switch_latch_pin->bit ); // Falling edge
+    *switch_latch_pin->port |= ( 1 << switch_latch_pin->bit );  // Rising edge
+    SPDR = SPIoutput[LEDcount];                                 // SPIoutput[LEDcount];//input_data;//Start Serial Transfer
 }
 
+ISR( SPI_STC_vect ) { // SPI Serial Transfer Complete
+    //PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin when entering SPI ISR
 
-
-void pendulum(void) {
-	
+    readSwitches[LEDcount] = SPDR;  //Store received SPI data.
+    if ( ++LEDcount < Bank_Size ) { // update LEDcount
+        SPDR = SPIoutput[LEDcount];
+    } else { // LEDcount >= Bank_Size	Keep in mind uint8_t limit on LEDcount
+        //Strobe RCK to SPI transferred data into output register
+        *LED_latch_pin->port |= ( 1 << LED_latch_pin->bit );  //Rising edge of low pulse
+        *LED_latch_pin->port &= ~( 1 << LED_latch_pin->bit ); //Latch Serial Output Data
+        // add dummy loop delay here if needed
+        PORTB &= ~( 1 << PORTB1 ); //Latch Serial Output Data
+        LEDcount = 0;
+        updateFlag = 1;
+    }
 }
 
-ISR(TIMER1_COMPA_vect){
-	//PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
-	
-	*switch_latch_pin->port &= ~(1<<switch_latch_pin->bit); // Falling edge
-	*switch_latch_pin->port |= (1<<switch_latch_pin->bit); // Rising edge
-	SPDR = SPIoutput[LEDcount];// SPIoutput[LEDcount];//input_data;//Start Serial Transfer
-}
-
-
-ISR(SPI_STC_vect) {	// SPI Serial Transfer Complete
-	//PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin when entering SPI ISR
-
-	readSwitches[LEDcount] = SPDR; //Store received SPI data.
-	if (++LEDcount<Bank_Size) { // update LEDcount
-		SPDR = SPIoutput[LEDcount];
-	} else { // LEDcount >= Bank_Size	Keep in mind uint8_t limit on LEDcount
-		//Strobe RCK to SPI transferred data into output register
-		*LED_latch_pin->port |= (1<<LED_latch_pin->bit); //Rising edge of low pulse
-		*LED_latch_pin->port &= ~(1<<LED_latch_pin->bit); //Latch Serial Output Data
-		// add dummy loop delay here if needed
-		PORTB &= ~(1<<PORTB1);//Latch Serial Output Data
-		LEDcount=0;
-		updateFlag = 1;
-	}
-}
-
-ISR(USART_TX_vect) {
+ISR( USART_TX_vect ) {
     Scoreboard::interruptStateMachine();
 }
