@@ -23,18 +23,21 @@ extern const uint8_t TOP_LANES_JACKPOT_BONUS;
     };
 
     // Breadcrumb I/O
-    extern GPIOPin breadcrumb_pin[2];
+    extern GPIOPin breadcrumb_pin;
 
     // SPI Latch I/O
-    extern GPIOPin switch_latch_pin[2];
-    extern GPIOPin LED_latch_pin[2];
+    extern GPIOPin switch_latch_pin;
+    extern GPIOPin LED_latch_pin;
 
     // Newtons Pendulum I/O
-    extern GPIOPin opticalEncoder_A_pin[2];
-    extern GPIOPin opticalEncoder_B_pin[2];
+    extern GPIOPin opticalEncoder_A_pin;
+    extern GPIOPin opticalEncoder_B_pin;
 
     // Scoreboard I/O
-    extern GPIOPin rs_485_de[2];
+    extern GPIOPin rs_485_de;
+
+    // Ball launch on
+    extern GPIOPin launch_pin;
 
 // SPI Globals
 extern volatile uint8_t SPIoutput[Bank_Size]; // LED data
@@ -91,6 +94,11 @@ extern volatile uint8_t switch_states[Bank_Size];
     extern uint8_t EOS_switch0;//Global EOS State variable
     extern uint8_t flipper_button1; // Global Flipper state variable
     extern uint8_t EOS_switch1; //Global EOS State variable
+
+// Ball launch
+    extern const uint8_t launch_button_mask[2];
+    extern const uint8_t launch_LED[2];
+    extern const uint8_t launch_max_count;
 
 
 

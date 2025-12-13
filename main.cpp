@@ -184,6 +184,9 @@ uint8_t flipper_state1 = 0; //Track the state of the flipper
 uint16_t high_count1 = 0;   // Track Duration of high power pulse
 uint16_t high_count_max = 1;
 
+volatile uint8_t launch_ball = 0;
+volatile uint16_t ball_launch_count = 0;
+
 int main( void ) {
     Setup();
     Scoreboard::configure();
@@ -441,8 +444,8 @@ void UpdateFlipper1() {
 ISR( TIMER1_COMPA_vect ) {
     //PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
 
-    *switch_latch_pin->port &= ~( 1 << switch_latch_pin->bit ); // Falling edge
-    *switch_latch_pin->port |= ( 1 << switch_latch_pin->bit );  // Rising edge
+    clearGPIOPin(switch_latch_pin); // Falling edge
+    setGPIOPin(switch_latch_pin);  // Rising edge
     SPDR = SPIoutput[LEDcount];                                 // SPIoutput[LEDcount];//input_data;//Start Serial Transfer
 }
 
@@ -454,8 +457,8 @@ ISR( SPI_STC_vect ) { // SPI Serial Transfer Complete
         SPDR = SPIoutput[LEDcount];
     } else { // LEDcount >= Bank_Size	Keep in mind uint8_t limit on LEDcount
         //Strobe RCK to SPI transferred data into output register
-        *LED_latch_pin->port |= ( 1 << LED_latch_pin->bit );  //Rising edge of low pulse
-        *LED_latch_pin->port &= ~( 1 << LED_latch_pin->bit ); //Latch Serial Output Data
+        setGPIOPin(LED_latch_pin);  //Rising edge of low pulse
+        clearGPIOPin(LED_latch_pin); //Latch Serial Output Data
         // add dummy loop delay here if needed
         PORTB &= ~( 1 << PORTB1 ); //Latch Serial Output Data
         LEDcount = 0;

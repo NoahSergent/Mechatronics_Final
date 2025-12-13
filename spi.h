@@ -35,4 +35,17 @@ inline void LED_set( const uint8_t LED_mask[2], uint8_t bit_pattern ) { //for ne
     SPIoutput[LED_mask[0]] = bit_pattern & ( LED_mask[1] );             // Sets LEDs in groups
 }
 
+inline void toggleGPIOPin(GPIOPin target) {
+    *target.port ^= (1 << target.bit);
+}
+inline void setGPIOPin(GPIOPin target) {
+    *target.port |= (1 << target.bit);
+}
+inline void clearGPIOPin(GPIOPin target) {
+    *target.port &= ~(1 << target.bit);
+}
+inline uint8_t getGPIOPin(GPIOPin target) {
+    return *target.port & (1 << target.bit);
+}
+
 #endif
