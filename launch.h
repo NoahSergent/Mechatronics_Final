@@ -4,52 +4,32 @@
  * 
  */
 
-#ifndef LAUNCH_H
-#define LAUNCH_H
+//Ball Launch***********************************************************************
+#ifndef LAUNCH_SOLENOID_H
+#define LAUNCH_SOLENOID_H
 
-#include <avr/io.h>
-#include <stdint.h>
 
-#define LAUNCH_BTN_BIT   PD4     // button on PD4
-#define SOLENOID_BIT     PD0     // solenoid on PD0
+volatile uint8_t launch_ball = 0;
+volatile uint16_t ball_launch_count = 0;
+uint8_t ball_launch_sol[2] = {0, 0x08};
+uint8_t ball_launch_button[2] = {1, 0x10};
 
-int main(void)
-{
-    // IO Setup
-    // Button: input with pull-up
-    DDRD  &= ~(1 << LAUNCH_BTN_BIT);   // PD4 input
-    PORTD |=  (1 << LAUNCH_BTN_BIT);   // pull-up on
-
-    // Solenoid: output, start OFF
-    DDRD  |=  (1 << SOLENOID_BIT);     // PD0 output
-    PORTD &= ~(1 << SOLENOID_BIT);     // low = off
-
-    uint8_t  firing = 0;      // 0 = off, 1 = currently firing
-    uint16_t count  = 0;      // software “timer”
-
-    while (1)
-    {
-        uint8_t button_now = PIND & (1 << LAUNCH_BTN_BIT);  // read PD4
-
-        if (!firing) {
-            // button is active-low: pressed when bit == 0
-            if (button_now == 0) {
-                // start launch pulse
-                firing = 1;
-                count  = 0;
-                PORTD |= (1 << SOLENOID_BIT);   // solenoid ON
-            }
-        } else {
-            // already firing: count loop cycles
-            count++;
-
-            // tune this number on the real machine so it’s ≤ 1 s
-            if (count >= 60000) {               // software limit
-                PORTD &= ~(1 << SOLENOID_BIT);  // solenoid OFF
-                firing = 0;
-            }
-        }
-    }
+VOID Ball_launch(
+    if(launch_ball == 0){
+	LED_off(ball_launch_sol);
+	PORTC &=~(1<<PORTC4);
+ 
+	if(switch_is_closed(ball_launch_button)){
+		launch_ball =1;
+		ball_launch_count = 0;
 }
-
-#endif
+}
+    else {//launch ball is 1
+	LED_on (ball_launch_sol);
+	PORTC |=(1<<PORTC4);
+       ball_launch_count++;
+if (ball_launch_count >=500){
+       launch_ball=0;
+}
+}
+)
