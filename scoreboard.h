@@ -132,9 +132,10 @@ public:
     //         // need_to_send = false;
     //     }
     // }
-
+    static void sendScorePolling();
     static void sendScoreInterrupt();
     static void interruptStateMachine();
+    static uint16_t getScore() {return score_;}
     static void setScore(uint16_t value) {
         score_ = value;
     }
