@@ -7,43 +7,7 @@
 
 /*
 Sections to complete
-	I/O SPI Port Expansion
-		You will utilize six shift registers to expand the I/O capabilities of your microcontroller. You will
-		use three parallel-input/serial-output shift registers to provide 16 digital inputs to your Arduino
-		board. These shift registers are configured in series so that data can be serially shifted through both
-		registers with three consecutive SPI transfers. Similarly, you will utilize three serial- input/parallel-
-		output shift registers to provide 16 digital outputs. You will use these outputs to control lights on
-		the pinball playfield. This will be nearly identical to the SPI lab, except that you will use additional
-		shift registers. The datasheets for the shift registers are uploaded to canvas. You will need to
-		identify which pins on the microcontroller to use for control signals, and you will need to ensure
-		that you provide the correct rising/falling edges for the latch signals. Additionally, you will now be
-		interfacing additional shift registers that are daisy chained together, which will require additional
-		SPI transfers to shift all of the data through the system. Lastly, you will need to debounce the
-		sampled switch values. This can be achieved by utilizing the debounce routine you previously
-		developed in Lab 3. Note however, the current function can debounce eight (8) switch inputs at a
-		time. You will need to modify your code to debounce twenty four (24) switch inputs.
-		
-		Switch IC inputs
-			SH/LD -		
-			CLK INH -	
-			CLK -		SCK
-			SER -		DAISY CHAINED (Q_h OUTPUT)
-		Above is already completed in the daughterboard	
-		Needed Arduino connections
-			- GND (next to pin 13)
-			- SCK (PB5, pin 13)
-			- MISO (PB4, pin 12)
-			- MOSI (PB3, pin 11)
-			- SS (output, no required connection - used for other outputs)
-			- L_I (input latch, up to determination)
-			- L_O (output latch, up to determination)
-		
-	I/O Port Debouncing
-		The two parallel-input/serial-output shift registers will be connected to switches on the pinball
-		playfield. Of these twenty four inputs (16) must be debounced. You should use the state machine
-		method developed in Lab 3. Note however, the current function can debounce eight (8) switch
-		inputs at a time. You will need to modify your code to debounce twenty four (24) switch inputs.
-		
+	
 	Newton Pendulum Target
 		The pendulum target located in the center of the playfield utilizes a quadrature encoder to measure
 		the rotation of the pendulum. There is also a light bar consisting of eight LEDs mounted on the target
@@ -132,7 +96,7 @@ void Setup( void ) {
     PORTB |= ( 1 << PORTB2 );
     PORTB &= ~( 1 << PORTB1 );
 
-    SPCR = ( 1 << SPIE ) | ( 1 << SPE ) | ( 0 << DORD ) | ( 1 << MSTR ) | ( 0 << CPOL ) | ( 0 << CPHA ) | ( 0 << SPR1 ) | ( 0 << SPR0 ); //clock speed f_osc/128 if double is high
+    SPCR = ( 1 << SPIE ) | ( 1 << SPE ) | ( 0 << DORD ) | ( 1 << MSTR ) | ( 0 << CPOL ) | ( 0 << CPHA ) | ( 0 << SPR1 ) | ( 0 << SPR0 ); //clock speed f_osc/2 if double is high
     SPSR = ( 1 << SPI2X );                                                                                                               // can read SPIF from bit 7, and WCOL from bit 6
     //SPDR is data register
 
@@ -141,7 +105,11 @@ void Setup( void ) {
     TCCR1B = ( 0 << ICNC1 ) | ( 0 << ICES1 ) | ( 0 << WGM13 ) | ( 1 << WGM12 ) | ( 1 << CS12 ) | ( 0 << CS11 ) | ( 0 << CS10 ); // Set timer 1 to CTC mode and prescaler to 256.
     //TCCR1C = (0<<FOC1A)|(0<<FOC1B);
     // update OSR1A based on longest SPI duration to guarantee no collisions
+<<<<<<< Updated upstream
     OCR1A = 62; // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
+=======
+    OCR1A = 63; // 63 -> 0.001 sec // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
+>>>>>>> Stashed changes
     TIMSK1 = ( 0 << ICIE1 ) | ( 0 << OCIE1B ) | ( 1 << OCIE1A ) | ( 0 << TOIE1 );
     //TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
 
@@ -150,18 +118,12 @@ void Setup( void ) {
 
     // Newton Pendulum variables
     // CCW = +1, CW = -1, index select is (2-bit old values),(2-bit new values)
-    const int16_t encoder_table[16] = {
-        0, 1, -1, 255, -1, 0, 255, 1, 1, 255, 0, -1, 255, -1, 1, 0
-    };
-    volatile int16_t position = 0;
-    volatile uint8_t old_channels = 0;
-    volatile uint8_t new_channels = 0;
-    uint8_t pendulumSwitch = 0;
-    uint16_t max_position = 76; // Assumes that 256 options is sufficient, update value after testing
-                                //DDRC &= ~(1<<PORTC4) | ~(1<<PORTC3); // Encoder channel pins as input
+    
+    //DDRC &= ~(1<<PORTC4);
+	//DDRC &= ~(1<<PORTC3); // Encoder channel pins as input
 }
 
-uint8_t input_data;
+//uint8_t input_data;
 
 void debounce( volatile uint8_t noisyData[Bank_Size] );
 
@@ -195,7 +157,12 @@ int main( void ) {
     //uint16_t LEDproportion = 0;
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 
+<<<<<<< Updated upstream
     Scoreboard::setScore( 0 );
+=======
+    //Scoreboard::setScore( 111 );
+	//Scoreboard::setScore( 123 );
+>>>>>>> Stashed changes
 
     while ( 1 ) {
         //PORTC ^= (1<<PORTC5);
@@ -205,6 +172,7 @@ int main( void ) {
             debounce( readSwitches );
             //std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
 
+<<<<<<< Updated upstream
             // Flipper
             // Scoreboard::setScore( 9 ); //DEBUG
             // uint16_t temp_score = Scoreboard::getScore();
@@ -239,6 +207,35 @@ int main( void ) {
             //         *breadcrumb_pin->port ^= ( 1 << breadcrumb_pin->bit ); // breadcrumb_pin // Toggle breadcrumb
             //     }
             // }
+=======
+			// Flipper
+			//Scoreboard::setScore(0);
+			// uint16_t temp_score = Scoreboard::getScore();
+			// flipper_button0 = CheckSwitchState(flipper_mask0);
+			// if (!(flipper_button0 != 0)) {
+			// 	temp_score += 1;
+			// }
+			// flipper_button1 = CheckSwitchState(flipper_mask1);
+			// if (!(flipper_button1 != 0)) temp_score +=10000;
+			// EOS_switch0 = CheckSwitchState(eos_mask0);
+			// if (EOS_switch0 != 0) temp_score += 100;
+			// EOS_switch1 = CheckSwitchState(eos_mask1);
+			// if (EOS_switch1 != 0) temp_score += 1000;
+
+			// Scoreboard::setScore(temp_score);
+
+			//UpdateFlipper0();
+
+            // This for loop sets the outputs equal to the inputs
+            
+			for ( int z = 0; z < (Bank_Size-1); z++ ) {
+                SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
+                if ( z == 3 ) {
+                    *breadcrumb_pin->port ^= ( 1 << breadcrumb_pin->bit ); // breadcrumb_pin // Toggle breadcrumb
+                }
+            }
+			
+>>>>>>> Stashed changes
             // Add mechanism calls here (include pinball board LED changes)
             // Flipper_Control();
             // Ball_Launch();
@@ -264,31 +261,50 @@ int main( void ) {
             // To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
 
             // Add scoreboard update here
+<<<<<<< Updated upstream
             // if (previous_falling_edges != falling_edges[1]) Scoreboard::setScore(uint16_t(falling_edges[1]));
             Scoreboard::sendScoreInterrupt();
             // previous_falling_edges = falling_edges[1];
+=======
+			// if (previous_falling_edges != falling_edges[1]) Scoreboard::setScore(uint16_t(falling_edges[1]));
+            
+			// previous_falling_edges = falling_edges[1];
+			
+>>>>>>> Stashed changes
 
             updateFlag = 0;
+			
         }
+		
+		if(CheckRisingEdges(spinner_sm)||CheckFallingEdges(spinner_sm)){
+			//Scoreboard::addToScore((uint16_t) 5);
+		}
 
+<<<<<<< Updated upstream
         // pendulum();
+=======
+        pendulum();
+		//Scoreboard::setScore(score);
+		
+		Scoreboard::sendScoreInterrupt();
+>>>>>>> Stashed changes
     }
 }
 
 void debounce( volatile uint8_t noisyData[Bank_Size] ) {
-    static uint8_t switchIndex = 0;
+    //static 
     //static uint8_t bankIndex = 0;
 
     uint8_t stable_high[Bank_Size];
-    for ( uint8_t i = 0; i < Bank_Size; ++i ) {
+    for ( uint8_t i = 0; i < Bank_Size; i++) {
         stable_high[i] = 0xFF;                       //Initialize temporary stable_high all high
         circularBuff[i][switchIndex] = noisyData[i]; // i was bankIndex
     }
     uint8_t stable_low[Bank_Size] = { 0 }; //Initialize temporary stable_low all low
 
     //Loop through all historical switch samples to check for stable highs and lows
-    for ( uint8_t j = 0; j < Bank_Size; ++j ) {
-        for ( uint8_t k = 0; k < Buffer_Length; ++k ) {
+    for ( uint8_t j = 0; j < Bank_Size; j++) {
+        for ( uint8_t k = 0; k < Buffer_Length; k++) {
             //"And" for stable high (all 1's will produce "1" for stable high)
             stable_high[j] &= circularBuff[j][k];
             //"Or" for stable low (all 0's will produce "0" for stable low)
@@ -299,17 +315,115 @@ void debounce( volatile uint8_t noisyData[Bank_Size] ) {
         falling_edges[j] = switch_states[j] & ( ~stable_low[j] );                 //Detect Falling Edges
         switch_states[j] = stable_high[j] | ( switch_states[j] & stable_low[j] ); //Update switch states
         //Update sample index and wrap if necessary
+<<<<<<< Updated upstream
     }
     if ( ++switchIndex >= Buffer_Length ) {
         switchIndex = 0; //wrap
     }
+=======
+        
+		}
+	if ( ++switchIndex >= Buffer_Length ) {
+		switchIndex = 0; //wrap
+	}
+>>>>>>> Stashed changes
 }
 
 void pendulum( void ) {
+	new_channels = (PINC & ((1<<PINC3) | (1<<PINC4))) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction. opticalEncoder_A_pin[1]
+	//switch_states[2] &
+	
+	volatile uint8_t encoderLUTindex = old_channels | new_channels;
+	volatile int16_t direction = encoder_table[encoderLUTindex];
+	
+	//Scoreboard::setScore(encoderLUTindex);
+	
+	if(direction==255) { //Check for error
+		//PORTC ^= (1<<breadcrumb_pin); // Error is occurring
+		
+		position +=0;
+		//SPIoutput[2] = 0b00000000;
+		} else if (direction>0) {
+		// CCW direction - LEDs should be increasing
+		position += direction; //Update position value
+		// divide range of encoder to calculate number of LEDs active (assume 90 degree travel range)
+		//LEDproportion = (position * 8) / totalPulses; // multiply by 8 LEDs, then divide
+		//LED_on(newton_lights)
+		//PORTC ^= (1<<breadcrumb_pin);
+		}else if(direction>0){
+		// CW direction - LEDs should be decreasing
+		position += direction; //Update position value
+		
+		}else{
+		// No change (error if direction is not 0)
+		position += direction;
+		
+		}
+	
+	//Shift and save current channels as old for next time
+	old_channels = new_channels<<2;
+	
+	pendulumSwitch = position / 16;	// 8-bit integer division from 16-bit number (overflow potential)
+	
+	// SPI port C broken out
+	//SPIoutput[2] = pendulumSwitch; // works with ~readSwitches[z];
+	//SPIoutput[2] = position;
+	
+		switch(pendulumSwitch) {
+			case 0: // LEDs off
+			SPIoutput[2] = 0b00000000;
+			//score_update = 0;
+			max_position = 0;
+			break;
+			case 1:
+			//LED_set(newton_lights,pendulumSwitch);
+			SPIoutput[2] = 0b00000001;
+			break;
+			case 2:
+			SPIoutput[2] = 0b00000011;
+			break;
+			case 3:
+			SPIoutput[2] = 0b00000111;
+			break;
+			case 4:
+			SPIoutput[2] = 0b00001111;
+			break;
+			case 5:
+			SPIoutput[2] = 0b00011111;
+			break;
+			case 6:
+			SPIoutput[2] = 0b00111111;
+			break;
+			case 7:
+			SPIoutput[2] = 0b01111111;
+			break;
+			case 8:
+			SPIoutput[2] = 0b11111111;
+			break;
+		}
+		
+		if (max_position!=pendulumSwitch){
+			//score += pendulumSwitch*2;
+			Scoreboard::addToScore((pendulumSwitch*2));
+			//Scoreboard::setScore(pendulumSwitch);
+		}
+		max_position=pendulumSwitch;
+	
+	/*
+	if (PINC&(1<<PINC3)){
+		SPIoutput[2] = 0b11111111;
+		PORTC ^= (1<<PORTC5);
+	}else{
+		SPIoutput[2] = 0b11110000;
+	}
+	
+	SPIoutput[1] = PINC;
+	*/
 }
 
 void UpdateFlipper0() {
 
+<<<<<<< Updated upstream
     flipper_button0 = CheckSwitchState( flipper_mask0 );
     EOS_switch0 = CheckSwitchState( eos_mask0 );
     // Scoreboard::setScore(flipper_state0); //DEBUG
@@ -346,6 +460,46 @@ void UpdateFlipper0() {
             OCR0A = 0;          // Set power to 0
         }
     }
+=======
+	flipper_button0 = CheckSwitchState(flipper_mask0);
+	EOS_switch0 = CheckSwitchState(eos_mask0);
+	//Scoreboard::setScore(flipper_state0);
+	if((flipper_button0 != 0)){//Button Not Pressed
+		flipper_state0 = 0; //Flipper at rest
+		OCR0A = 0; //Set at 0 power
+		//*************************************
+	}
+	else{//Button Pressed
+		switch(flipper_state0) {
+			case 0: //New Flip
+				flipper_state0 = 1;//set state to high power
+				OCR0A = kHit_Power; // Set to flipping power
+				high_count0 = 0; // Reset 40ms pulse counter
+				break;
+			case 1: //High Power Flip
+				if(high_count0<=high_count_max){ // Still flipping
+					high_count0++;  //increment to record another 0.1ms
+				} else { //Flip over, switch to low power holding
+					flipper_state0=2; //Update state to low power hold
+				}
+				break;
+			case 2: //Low Power Hold
+				if(!(EOS_switch0 != 0)) {  //EOS Switch is closed, flipper is falling
+					flipper_state0=1; //Restart another high powered pulse
+					high_count0=0;  
+					OCR0A = kHit_Power; // Hit Power
+				}
+				else {
+					OCR0A = kHold_Power; // Hold Power
+				}
+				break;
+			default: // state that should never be reached
+				flipper_state0 = 0; // Flipper at rest
+				OCR0A = 0; // Set power to 0
+
+				}
+		}
+>>>>>>> Stashed changes
 }
 
 void UpdateFlipper1() {

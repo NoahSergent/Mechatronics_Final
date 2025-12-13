@@ -51,7 +51,7 @@ extern volatile uint8_t circularBuff[Bank_Size][Buffer_Length];
 extern volatile uint8_t rising_edges[Bank_Size];
 extern volatile uint8_t falling_edges[Bank_Size];
 extern volatile uint8_t switch_states[Bank_Size];
-
+extern volatile uint8_t switchIndex;
 
 // // SPI Expansion Input Masks
     extern const uint8_t TOP_LANE0_SWITCH[2];
@@ -95,11 +95,24 @@ extern volatile uint8_t switch_states[Bank_Size];
     extern uint8_t flipper_button1; // Global Flipper state variable
     extern uint8_t EOS_switch1; //Global EOS State variable
 
+<<<<<<< Updated upstream
 // Ball launch
     extern const uint8_t launch_button_mask[2];
     extern const uint8_t launch_LED[2];
     extern const uint8_t launch_max_count;
 
+=======
+	// Pendulum
+	extern const int16_t encoder_table[16];
+>>>>>>> Stashed changes
 
+	volatile extern int16_t position;
+	volatile extern uint8_t old_channels;
+	volatile extern uint8_t new_channels;
+	volatile extern uint16_t pendulumSwitch;
+	volatile extern uint16_t max_position; // Assumes that 256 options is sufficient, update value after testing
+	
+	volatile extern uint16_t score;
+	
 
 #endif
