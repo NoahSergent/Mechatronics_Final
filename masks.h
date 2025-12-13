@@ -9,7 +9,7 @@
 
 #include <avr/io.h>
 
-#define Buffer_Length 2 // Modify by checking with scope for debounce time in switches - adjust with Timer1 clock speed
+#define Buffer_Length 6 // Modify by checking with scope for debounce time in switches - adjust with Timer1 clock speed
 #define Bank_Size 3 // Modify if we ever use more or less than three banks of switches
 
 // // Top Lanes Constants

@@ -117,12 +117,12 @@ Sections to complete
 #include <avr/io.h>
 
 void Setup( void ) {
-	// flipper setup
-	DDRD |= (1<<PORTD6)| (1<<PORTD5);
-    TCCR0A = (1<<COM0A1)|(0<<COM0A0)|(1<<COM0B1)|(0<<COM0B0)|(1<<WGM01)|(1<<WGM00); // Setup Fast PWM Mode for Channel A and Channel B
-	TCCR0B = (0<<WGM02)|(0<<CS02)|(1<<CS01)|(0<<CS00); // Define Clock Source Prescaler
-	OCR0A = 0; //Initialized PWM Duty Cycle for flipper 0
-	OCR0B = 0; //Initialized PWM Duty Cycle for flipper 1
+    // flipper setup
+    DDRD |= ( 1 << PORTD6 ) | ( 1 << PORTD5 );
+    TCCR0A = ( 1 << COM0A1 ) | ( 0 << COM0A0 ) | ( 1 << COM0B1 ) | ( 0 << COM0B0 ) | ( 1 << WGM01 ) | ( 1 << WGM00 ); // Setup Fast PWM Mode for Channel A and Channel B
+    TCCR0B = ( 0 << WGM02 ) | ( 0 << CS02 ) | ( 1 << CS01 ) | ( 0 << CS00 );                                          // Define Clock Source Prescaler
+    OCR0A = 0;                                                                                                        //Initialized PWM Duty Cycle for flipper 0
+    OCR0B = 0;                                                                                                        //Initialized PWM Duty Cycle for flipper 1
 
     // SPI
     DDRB = ( 1 << PORTB1 ) | ( 1 << PORTB2 ) | ( 1 << PORTB3 ) | ( 0 << PORTB4 ) | ( 1 << PORTB5 );
@@ -141,7 +141,7 @@ void Setup( void ) {
     TCCR1B = ( 0 << ICNC1 ) | ( 0 << ICES1 ) | ( 0 << WGM13 ) | ( 1 << WGM12 ) | ( 1 << CS12 ) | ( 0 << CS11 ) | ( 0 << CS10 ); // Set timer 1 to CTC mode and prescaler to 256.
     //TCCR1C = (0<<FOC1A)|(0<<FOC1B);
     // update OSR1A based on longest SPI duration to guarantee no collisions
-    OCR1A = 3124; // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
+    OCR1A = 62; // 3124 -> 0.05 sec //624 -> 0.01 sec // total_CTC_time = (OCR1A+1)*del_t = (OCR1A+1)*n/16MHz		0.1 sec in this case
     TIMSK1 = ( 0 << ICIE1 ) | ( 0 << OCIE1B ) | ( 1 << OCIE1A ) | ( 0 << TOIE1 );
     //TIFR1 = (0<<ICF1)|(0<<OCF1B)|(0<<OCF1A)|(0<<TOV1);
 
@@ -167,8 +167,6 @@ void debounce( volatile uint8_t noisyData[Bank_Size] );
 
 void pendulum( void );
 
-
-
 /* Example use case
 					if(CheckFallingEdges(spinner_sm)){
 						LED_toggle(spinner_lights);
@@ -176,21 +174,20 @@ void pendulum( void );
 					}
 				*/
 
-
 uint8_t previous_falling_edges = 0;
-const uint8_t flipper_mask[2] = {0,1};
+const uint8_t flipper_mask[2] = { 0, 1 };
 void UpdateFlipper0();
 void UpdateFlipper1();
 uint8_t flipper_state0 = 0; //Track the state of the flipper
-uint16_t high_count0 = 0; // Track Duration of high power pulse
+uint16_t high_count0 = 0;   // Track Duration of high power pulse
 uint8_t flipper_state1 = 0; //Track the state of the flipper
-uint16_t high_count1 = 0; // Track Duration of high power pulse
+uint16_t high_count1 = 0;   // Track Duration of high power pulse
 uint16_t high_count_max = 1;
 
 int main( void ) {
     Setup();
     Scoreboard::configure();
-	TopLanes::init();
+    TopLanes::init();
     sei();
     //uint16_t LEDproportion = 0;
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
@@ -205,32 +202,40 @@ int main( void ) {
             debounce( readSwitches );
             //std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
 
-			// Flipper
-			Scoreboard::setScore(0);
-			// uint16_t temp_score = Scoreboard::getScore();
-			// flipper_button0 = CheckSwitchState(flipper_mask0);
-			// if (!(flipper_button0 != 0)) {
-			// 	temp_score += 1;
-			// }
-			// flipper_button1 = CheckSwitchState(flipper_mask1);
-			// if (!(flipper_button1 != 0)) temp_score +=10000;
-			// EOS_switch0 = CheckSwitchState(eos_mask0);
-			// if (EOS_switch0 != 0) temp_score += 100;
-			// EOS_switch1 = CheckSwitchState(eos_mask1);
-			// if (EOS_switch1 != 0) temp_score += 1000;
+            // Flipper
+            Scoreboard::setScore( 9 );
+            // uint16_t temp_score = Scoreboard::getScore();
+            // flipper_button0 = CheckSwitchState(flipper_mask0);
+            // if (!(flipper_button0 != 0)) {
+            // 	temp_score += 1;
+            // }
+            // flipper_button1 = CheckSwitchState(flipper_mask1);
+            // if (!(flipper_button1 != 0)) temp_score +=10000;
+            // EOS_switch0 = CheckSwitchState(eos_mask0);
+            // if (EOS_switch0 != 0) temp_score += 100;
+            // EOS_switch1 = CheckSwitchState(eos_mask1);
+            // if (EOS_switch1 != 0) temp_score += 1000;
 
-			// Scoreboard::setScore(temp_score);
-
-			UpdateFlipper0();
-			UpdateFlipper1();
+            // Scoreboard::setScore(temp_score);
+            TopLanes::checkSwitches();
+            // if ( CheckFallingEdges( TOP_LANE0_SWITCH ) ) {
+            //     // SPIoutput[1] |= TOP_LANE0_LED[1];
+			// 	LED_on(TOP_LANE0_LED);
+            // }
+            // if ( CheckRisingEdges( TOP_LANE0_SWITCH ) ) {
+			// 	// SPIoutput[1] &= ~TOP_LANE0_LED[1];
+			// 	LED_off(TOP_LANE0_LED);
+            // }
+            UpdateFlipper0();
+            UpdateFlipper1();
 
             // This for loop sets the outputs equal to the inputs
-            for ( int z = 0; z < Bank_Size; z++ ) {
-                SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
-                if ( z == 3 ) {
-                    *breadcrumb_pin->port ^= ( 1 << breadcrumb_pin->bit ); // breadcrumb_pin // Toggle breadcrumb
-                }
-            }
+            // for ( int z = 0; z < Bank_Size; z++ ) {
+            //     SPIoutput[z] = ~switch_states[z]; // works with ~readSwitches[z];
+            //     if ( z == 3 ) {
+            //         *breadcrumb_pin->port ^= ( 1 << breadcrumb_pin->bit ); // breadcrumb_pin // Toggle breadcrumb
+            //     }
+            // }
             // Add mechanism calls here (include pinball board LED changes)
             // Flipper_Control();
             // Ball_Launch();
@@ -256,10 +261,9 @@ int main( void ) {
             // To increase the pressure, change Flipper hold value PWM to 100% to burn out solenoids! mhuaa hahaha... just kidding
 
             // Add scoreboard update here
-			// if (previous_falling_edges != falling_edges[1]) Scoreboard::setScore(uint16_t(falling_edges[1]));
+            // if (previous_falling_edges != falling_edges[1]) Scoreboard::setScore(uint16_t(falling_edges[1]));
             Scoreboard::sendScoreInterrupt();
-			// previous_falling_edges = falling_edges[1];
-			
+            // previous_falling_edges = falling_edges[1];
 
             updateFlag = 0;
         }
@@ -292,9 +296,9 @@ void debounce( volatile uint8_t noisyData[Bank_Size] ) {
         falling_edges[j] = switch_states[j] & ( ~stable_low[j] );                 //Detect Falling Edges
         switch_states[j] = stable_high[j] | ( switch_states[j] & stable_low[j] ); //Update switch states
         //Update sample index and wrap if necessary
-        if ( ++switchIndex >= Buffer_Length ) {
-            switchIndex = 0; //wrap
-        }
+    }
+    if ( ++switchIndex >= Buffer_Length ) {
+        switchIndex = 0; //wrap
     }
 }
 
@@ -303,86 +307,80 @@ void pendulum( void ) {
 
 void UpdateFlipper0() {
 
-	flipper_button0 = CheckSwitchState(flipper_mask0);
-	EOS_switch0 = CheckSwitchState(eos_mask0);
-	Scoreboard::setScore(flipper_state0);
-	if((flipper_button0 != 0)){//Button Not Pressed
-		flipper_state0 = 0; //Flipper at rest
-		OCR0A = 0; //Set at 0 power
-		//*************************************
-	}
-	else{//Button Pressed
-		switch(flipper_state0) {
-			case 0: //New Flip
-				flipper_state0 = 1;//set state to high power
-				OCR0A = kHit_Power; // Set to flipping power
-				high_count0 = 0; // Reset 40ms pulse counter
-				break;
-			case 1: //High Power Flip
-				if(high_count0<=high_count_max){ // Still flipping
-					high_count0++;  //increment to record another 0.1ms
-				} else { //Flip over, switch to low power holding
-					flipper_state0=2; //Update state to low power hold
-				}
-				break;
-			case 2: //Low Power Hold
-				if(!(EOS_switch0 != 0)) {  //EOS Switch is closed, flipper is falling
-					flipper_state0=1; //Restart another high powered pulse
-					high_count0=0;  
-					OCR0A = kHit_Power; // Hit Power
-				}
-				else {
-					OCR0A = kHold_Power; // Hold Power
-				}
-				break;
-			default: // state that should never be reached
-				flipper_state0 = 0; // Flipper at rest
-				OCR0A = 0; // Set power to 0
-
-				}
-		}
+    flipper_button0 = CheckSwitchState( flipper_mask0 );
+    EOS_switch0 = CheckSwitchState( eos_mask0 );
+    // Scoreboard::setScore(flipper_state0); //DEBUG
+    if ( ( flipper_button0 != 0 ) ) { //Button Not Pressed
+        flipper_state0 = 0;           //Flipper at rest
+        OCR0A = 0;                    //Set at 0 power
+                                      //*************************************
+    } else {                          //Button Pressed
+        switch ( flipper_state0 ) {
+        case 0:                 //New Flip
+            flipper_state0 = 1; //set state to high power
+            OCR0A = kHit_Power; // Set to flipping power
+            high_count0 = 0;    // Reset 40ms pulse counter
+            break;
+        case 1:                                    //High Power Flip
+            if ( high_count0 <= high_count_max ) { // Still flipping
+                high_count0++;                     //increment to record another 0.1ms
+            } else {                               //Flip over, switch to low power holding
+                flipper_state0 = 2;                //Update state to low power hold
+            }
+            break;
+        case 2:                            //Low Power Hold
+            if ( !( EOS_switch0 != 0 ) ) { //EOS Switch is closed, flipper is falling
+                flipper_state0 = 1;        //Restart another high powered pulse
+                high_count0 = 0;
+                OCR0A = kHit_Power; // Hit Power
+            } else {
+                OCR0A = kHold_Power; // Hold Power
+            }
+            break;
+        default:                // state that should never be reached
+            flipper_state0 = 0; // Flipper at rest
+            OCR0A = 0;          // Set power to 0
+        }
+    }
 }
 
 void UpdateFlipper1() {
 
-	flipper_button1 = CheckSwitchState(flipper_mask1);
-	EOS_switch1 = CheckSwitchState(eos_mask1);
-	Scoreboard::setScore(flipper_state1);
-	if((flipper_button1 != 0)){//Button Not Pressed
-		flipper_state1 = 0; //Flipper at rest
-		OCR0B = 0; //Set at 0 power
-		//*************************************
-	}
-	else{//Button Pressed
-		switch(flipper_state1) {
-			case 0: //New Flip
-				flipper_state1 = 1;//set state to high power
-				OCR0B = kHit_Power; // Set to flipping power
-				high_count1 = 0; // Reset 40ms pulse counter
-				break;
-			case 1: //High Power Flip
-				if(high_count1<=high_count_max){ // Still flipping
-					high_count1++;  //increment to record another 0.1ms
-				} else { //Flip over, switch to low power holding
-					flipper_state1=2; //Update state to low power hold
-				}
-				break;
-			case 2: //Low Power Hold
-				if(!(EOS_switch1 != 0)) {  //EOS Switch is closed, flipper is falling
-					flipper_state1=1; //Restart another high powered pulse
-					high_count1=0;  
-					OCR0B = kHit_Power; // Hit Power
-				}
-				else {
-					OCR0B = kHold_Power; // Hold Power
-				}
-				break;
-			default: // state that should never be reached
-				flipper_state1 = 0; // Flipper at rest
-				OCR0B = 0; // Set power to 0
-
-				}
-		}
+    flipper_button1 = CheckSwitchState( flipper_mask1 );
+    EOS_switch1 = CheckSwitchState( eos_mask1 );
+    // Scoreboard::setScore(flipper_state1); //DEBUG
+    if ( ( flipper_button1 != 0 ) ) { //Button Not Pressed
+        flipper_state1 = 0;           //Flipper at rest
+        OCR0B = 0;                    //Set at 0 power
+                                      //*************************************
+    } else {                          //Button Pressed
+        switch ( flipper_state1 ) {
+        case 0:                 //New Flip
+            flipper_state1 = 1; //set state to high power
+            OCR0B = kHit_Power; // Set to flipping power
+            high_count1 = 0;    // Reset 40ms pulse counter
+            break;
+        case 1:                                    //High Power Flip
+            if ( high_count1 <= high_count_max ) { // Still flipping
+                high_count1++;                     //increment to record another 0.1ms
+            } else {                               //Flip over, switch to low power holding
+                flipper_state1 = 2;                //Update state to low power hold
+            }
+            break;
+        case 2:                            //Low Power Hold
+            if ( !( EOS_switch1 != 0 ) ) { //EOS Switch is closed, flipper is falling
+                flipper_state1 = 1;        //Restart another high powered pulse
+                high_count1 = 0;
+                OCR0B = kHit_Power; // Hit Power
+            } else {
+                OCR0B = kHold_Power; // Hold Power
+            }
+            break;
+        default:                // state that should never be reached
+            flipper_state1 = 0; // Flipper at rest
+            OCR0B = 0;          // Set power to 0
+        }
+    }
 }
 
 ISR( TIMER1_COMPA_vect ) {

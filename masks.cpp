@@ -38,8 +38,8 @@ extern volatile uint8_t falling_edges[Bank_Size] = {0};
 extern volatile uint8_t switch_states[Bank_Size] = {0};
 
 // SPI Expansion Input Masks TODO redefine after checking switch location on pinball machine
-    extern const uint8_t TOP_LANE0_SWITCH[2] = {1, 1}; // Bank B pin 1
-    extern const uint8_t TOP_LANE1_SWITCH[2] = {1, 2}; // Bank B pin 2
+    extern const uint8_t TOP_LANE0_SWITCH[2] = {1, 0b00000010}; // Bank B pin 1
+    extern const uint8_t TOP_LANE1_SWITCH[2] = {1, 0b00000100}; // Bank B pin 2
 
     extern const uint8_t spinner_sm[2] = { 0, 0x02 };
 
@@ -47,8 +47,8 @@ extern volatile uint8_t switch_states[Bank_Size] = {0};
 
 // SPI Expansion Output Masks TODO redefine after checking LED locations on pinball machine (include current limiting resistors)
 
-    extern const uint8_t TOP_LANE0_LED[2] = {0, 0};
-    extern const uint8_t TOP_LANE1_LED[2] = {0, 0};
+    extern const uint8_t TOP_LANE0_LED[2] = {1, 0b00000010};
+    extern const uint8_t TOP_LANE1_LED[2] = {1, 0b00000100};
     extern const uint8_t ramp_lights[2] = { 0, 0x01 };
 
     extern const uint8_t drop_bank_lights[2] = { 0, 0x01 };
