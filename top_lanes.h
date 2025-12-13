@@ -12,6 +12,7 @@
 
 #include "masks.h"
 #include "scoreboard.h"
+#include "spi.h"
 
 
 uint8_t toInt8( auto value ) { return static_cast<uint8_t>( value ); }
@@ -82,7 +83,7 @@ private:
         offLED( LED1 );
     }
 
-    static void onLED( LED target ) {
+    static inline void onLED( LED target ) {
         // TODO:Code here to set led value in spi output buffer
         *LED_status_arr[toInt8( target )] = On; // Mark LED as on
     }

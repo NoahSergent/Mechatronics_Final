@@ -167,30 +167,7 @@ void debounce( volatile uint8_t noisyData[Bank_Size] );
 
 void pendulum( void );
 
-// How to pull data from debounced switch inputs	(place in better location for easy access for everyone)
-uint8_t CheckSwitchState( uint8_t const switch_mask[2] ) {
-    return switch_states[switch_mask[0]] & switch_mask[1];
-}
-uint8_t CheckFallingEdges( uint8_t const switch_mask[2] ) {
-    return falling_edges[switch_mask[0]] & switch_mask[1];
-}
-uint8_t CheckRisingEdges( uint8_t const switch_mask[2] ) {
-    return rising_edges[switch_mask[0]] & switch_mask[1]; //may need to be reversed
-}
 
-// How to toggle LED *** Check that this will behave as expected
-uint8_t LED_toggle( uint8_t LED_mask[2] ) {
-    return SPIoutput[LED_mask[0]] ^= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Toggles LED
-}
-uint8_t LED_on( uint8_t LED_mask[2] ) {
-    return SPIoutput[LED_mask[0]] |= ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns on LED
-}
-uint8_t LED_off( uint8_t LED_mask[2] ) {
-    return SPIoutput[LED_mask[0]] &= ~( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Turns off LED
-}
-uint8_t LED_set( uint8_t LED_mask[2], uint8_t bit_pattern ) {                               //for newton's pendulum
-    return SPIoutput[LED_mask[0]] = bit_pattern & ( SPIoutput[LED_mask[0]] & LED_mask[1] ); // Sets LEDs in groups
-}
 
 /* Example use case
 					if(CheckFallingEdges(spinner_sm)){
@@ -213,6 +190,7 @@ uint16_t high_count_max = 1;
 int main( void ) {
     Setup();
     Scoreboard::configure();
+	TopLanes::init();
     sei();
     //uint16_t LEDproportion = 0;
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
