@@ -192,7 +192,7 @@ int main( void ) {
     //uint16_t LEDproportion = 0;
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 
-    Scoreboard::setScore( 111 );
+    Scoreboard::setScore( 0 );
 
     while ( 1 ) {
         //PORTC ^= (1<<PORTC5);
@@ -203,7 +203,7 @@ int main( void ) {
             //std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
 
             // Flipper
-            Scoreboard::setScore( 9 );
+            // Scoreboard::setScore( 9 ); //DEBUG
             // uint16_t temp_score = Scoreboard::getScore();
             // flipper_button0 = CheckSwitchState(flipper_mask0);
             // if (!(flipper_button0 != 0)) {
@@ -268,7 +268,7 @@ int main( void ) {
             updateFlag = 0;
         }
 
-        pendulum();
+        // pendulum();
     }
 }
 
@@ -317,6 +317,7 @@ void UpdateFlipper0() {
     } else {                          //Button Pressed
         switch ( flipper_state0 ) {
         case 0:                 //New Flip
+			TopLanes::swapLED(); // For TOPLANES
             flipper_state0 = 1; //set state to high power
             OCR0A = kHit_Power; // Set to flipping power
             high_count0 = 0;    // Reset 40ms pulse counter
@@ -356,6 +357,7 @@ void UpdateFlipper1() {
     } else {                          //Button Pressed
         switch ( flipper_state1 ) {
         case 0:                 //New Flip
+			TopLanes::swapLED(); // for TOPLANES
             flipper_state1 = 1; //set state to high power
             OCR0B = kHit_Power; // Set to flipping power
             high_count1 = 0;    // Reset 40ms pulse counter
@@ -382,6 +384,59 @@ void UpdateFlipper1() {
         }
     }
 }
+
+
+
+// void pendulum( void ) {
+//  new_channels = (PORTC & ((1<<PORTC3) | (1<<PORTC4))) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction. opticalEncoder_A_pin[1]
+//  //switch_states[2] &
+ 
+//  volatile uint8_t encoderLUTindex = old_channels | new_channels;
+//  volatile int16_t direction = encoder_table[encoderLUTindex];
+ 
+//  //Scoreboard::setScore(encoderLUTindex);
+ 
+//  if(direction==255) { //Check for error
+//   //PORTC ^= (1<<breadcrumb_pin); // Error is occurring
+  
+//   position +=0;
+//   //SPIoutput[2] = 0b00000000;
+//   } else if (direction>0) {
+//   // CCW direction - LEDs should be increasing
+//   position += direction; //Update position value
+//   // divide range of encoder to calculate number of LEDs active (assume 90 degree travel range)
+//   //LEDproportion = (position * 8) / totalPulses; // multiply by 8 LEDs, then divide
+//   //LED_on(newton_lights)
+//   //PORTC ^= (1<<breadcrumb_pin);
+  
+//   }else if(direction>0){
+//   // CW direction - LEDs should be decreasing
+//   position += direction; //Update position value
+  
+//   }else{
+//   // No change (error if direction is not 0)
+//   position += direction;
+  
+//   }
+ 
+//  //Shift and save current channels as old for next time
+//  old_channels = new_channels<<2;
+ 
+//  //pendulumSwitch = max_position / 9; // 8-bit integer division from 16-bit number (overflow potential)
+ 
+//  // SPI port C broken out
+//  //SPIoutput[2] = pendulumSwitch; // works with ~readSwitches[z];
+//  //SPIoutput[2] = position;
+//  if (PORTC&(1<<PORTC3)){
+//   SPIoutput[2] = 0b11111111;
+//   PORTC ^= (1<<PORTC5);
+//  }else{
+//   SPIoutput[2] = 0b11110000;
+//  }
+ 
+//  SPIoutput[1] = PORTC;
+ 
+// }
 
 ISR( TIMER1_COMPA_vect ) {
     //PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
