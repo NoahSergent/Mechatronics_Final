@@ -51,6 +51,20 @@ void Scoreboard::sendScoreInterrupt() {
     }
 }
 
+void Scoreboard::sendScorePolling() {
+    while(!(UCSR0A & (1 << UDRE0)));
+        if (transmit_state_ == 0) {
+            PORTD |= ( 1 << PORTD2 ); //Enable Transmitter (RS-485 Transceiver IC)
+            UCSR0B |= ( 1 << TXB80 ); //Set Address Bit
+            UDR0 = SCOREBOARD_ADDR;   //Send node address 0x10
+            transmit_state_++;        //Update transmit state
+        }
+        while(transmit_state_ != 0) {
+            while(!(UCSR0A & (1 << UDRE0)));
+            interruptStateMachine();
+        }
+}
+
 void Scoreboard::interruptStateMachine() {
     //Parse packet and send next chunk
     switch ( transmit_state_ ) {
