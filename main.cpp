@@ -112,6 +112,7 @@ Sections to complete
 
 #include "masks.h"
 #include "scoreboard.h"
+#include "top_lanes.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
@@ -202,8 +203,11 @@ uint8_t LED_set( uint8_t LED_mask[2], uint8_t bit_pattern ) {                   
 uint8_t previous_falling_edges = 0;
 const uint8_t flipper_mask[2] = {0,1};
 void UpdateFlipper0();
+void UpdateFlipper1();
 uint8_t flipper_state0 = 0; //Track the state of the flipper
 uint16_t high_count0 = 0; // Track Duration of high power pulse
+uint8_t flipper_state1 = 0; //Track the state of the flipper
+uint16_t high_count1 = 0; // Track Duration of high power pulse
 uint16_t high_count_max = 1;
 
 int main( void ) {
@@ -240,6 +244,7 @@ int main( void ) {
 			// Scoreboard::setScore(temp_score);
 
 			UpdateFlipper0();
+			UpdateFlipper1();
 
             // This for loop sets the outputs equal to the inputs
             for ( int z = 0; z < Bank_Size; z++ ) {
@@ -355,6 +360,48 @@ void UpdateFlipper0() {
 			default: // state that should never be reached
 				flipper_state0 = 0; // Flipper at rest
 				OCR0A = 0; // Set power to 0
+
+				}
+		}
+}
+
+void UpdateFlipper1() {
+
+	flipper_button1 = CheckSwitchState(flipper_mask1);
+	EOS_switch1 = CheckSwitchState(eos_mask1);
+	Scoreboard::setScore(flipper_state1);
+	if((flipper_button1 != 0)){//Button Not Pressed
+		flipper_state1 = 0; //Flipper at rest
+		OCR0B = 0; //Set at 0 power
+		//*************************************
+	}
+	else{//Button Pressed
+		switch(flipper_state1) {
+			case 0: //New Flip
+				flipper_state1 = 1;//set state to high power
+				OCR0B = kHit_Power; // Set to flipping power
+				high_count1 = 0; // Reset 40ms pulse counter
+				break;
+			case 1: //High Power Flip
+				if(high_count1<=high_count_max){ // Still flipping
+					high_count1++;  //increment to record another 0.1ms
+				} else { //Flip over, switch to low power holding
+					flipper_state1=2; //Update state to low power hold
+				}
+				break;
+			case 2: //Low Power Hold
+				if(!(EOS_switch1 != 0)) {  //EOS Switch is closed, flipper is falling
+					flipper_state1=1; //Restart another high powered pulse
+					high_count1=0;  
+					OCR0B = kHit_Power; // Hit Power
+				}
+				else {
+					OCR0B = kHold_Power; // Hold Power
+				}
+				break;
+			default: // state that should never be reached
+				flipper_state1 = 0; // Flipper at rest
+				OCR0B = 0; // Set power to 0
 
 				}
 		}
