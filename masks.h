@@ -110,6 +110,16 @@ extern volatile uint8_t switchIndex;
     extern const uint8_t launch_LED[2];
     extern const uint8_t launch_max_count;
 
+	// Pendulum
+	extern const int16_t encoder_table[16];
 
+	volatile extern int16_t position;
+	volatile extern uint8_t old_channels;
+	volatile extern uint8_t new_channels;
+	volatile extern uint16_t pendulumSwitch;
+	volatile extern uint16_t max_position; // Assumes that 256 options is sufficient, update value after testing
+	
+	volatile extern uint16_t score;
+	
 
 #endif

@@ -38,17 +38,30 @@ extern volatile uint8_t readSwitches[Bank_Size] = { 0 }; // Bank_Size is 3 by de
 extern volatile uint8_t updateFlag = 0;                  // SPI full Bank_Index data received
 
 // Debounce Globals
+<<<<<<< Updated upstream
 extern volatile uint8_t noisySwitchSet[Bank_Size][Buffer_Length] = { 0 }; // sets all inputs to 0 initially
 extern volatile uint8_t circularBuff[Bank_Size][Buffer_Length] = { 0 };
 extern volatile uint8_t rising_edges[Bank_Size] = { 0 };
 extern volatile uint8_t falling_edges[Bank_Size] = { 0 };
 extern volatile uint8_t switch_states[Bank_Size] = { 0 };
+=======
+//extern volatile uint8_t noisySwitchSet[Bank_Size][Buffer_Length] = {0}; // sets all inputs to 0 initially
+extern volatile uint8_t circularBuff[Bank_Size][Buffer_Length] = {0};
+extern volatile uint8_t rising_edges[Bank_Size] = {0};
+extern volatile uint8_t falling_edges[Bank_Size] = {0};
+extern volatile uint8_t switch_states[Bank_Size] = {0};
+extern volatile uint8_t switchIndex = 0;
+>>>>>>> Stashed changes
 
 // SPI Expansion Input Masks TODO redefine after checking switch location on pinball machine
 extern const uint8_t TOP_LANE0_SWITCH[2] = { 1, 0b00000010 }; // Bank B pin 1
 extern const uint8_t TOP_LANE1_SWITCH[2] = { 1, 0b00000100 }; // Bank B pin 2
 
+<<<<<<< Updated upstream
 extern const uint8_t spinner_sm[2] = { 0, 0x02 };
+=======
+    extern const uint8_t spinner_sm[2] = { 1, 0x20 }; // finished
+>>>>>>> Stashed changes
 
 extern const uint8_t hurry_up[2] = { 0, 0x80 };
 
@@ -69,13 +82,18 @@ extern const uint8_t right_lane_lower_lights[2] = { 0, 0x01 };
 
 extern const uint8_t orbit_lights[2] = { 0, 0x01 };
 
+<<<<<<< Updated upstream
 extern const uint8_t spinner_lights[2] = { 0, 0x01 };
+=======
+    extern const uint8_t spinner_lights[2] = { 1, 0x01 };
+>>>>>>> Stashed changes
 
 extern const uint8_t newton_lights[2] = { 2, 0xFF }; // This requires 8 LEDs, so a full port, assuming port 3
 
 extern const uint8_t standup_lights[2] = { 0, 0x01 };
 
 // PWM Variables
+<<<<<<< Updated upstream
 extern const uint8_t flipper_mask0[2] = { 0, 1 };
 extern const uint8_t flipper_mask1[2] = { 0, 0b00000100 };
 extern const uint8_t eos_mask0[2] = { 0, 0b00000010 };
@@ -87,6 +105,35 @@ extern uint8_t flipper_button0 = 1;    // Global Flipper state variable
 extern uint8_t EOS_switch0 = 0;        //Global EOS State variable
 extern uint8_t flipper_button1 = 1;    // Global Flipper state variable
 extern uint8_t EOS_switch1 = 0;        //Global EOS State variable
+=======
+    extern const uint8_t flipper_mask0[2] = {0, 1};
+    extern const uint8_t flipper_mask1[2] = {0, 0b00000100};
+    extern const uint8_t eos_mask0[2] = {0, 0b00000010};
+    extern const uint8_t eos_mask1[2] = {0, 0b00001000};
+
+    extern const uint8_t kHold_Power = 25; // Define Holding OCR0A/B Value
+    extern const uint8_t kHit_Power = 255; // Define Flipping 0CR0A/B Value. %DC = 0CR0A / 255
+    extern uint8_t flipper_button0 = 1; // Global Flipper state variable
+    extern uint8_t EOS_switch0 = 0; //Global EOS State variable
+    extern uint8_t flipper_button1 = 1; // Global Flipper state variable
+    extern uint8_t EOS_switch1 = 0; //Global EOS State variable
+ 
+ // Pendulum
+	extern const int16_t encoder_table[16] = {
+		0, 1, -1, 255,
+		-1, 0, 255, 1,
+		1, 255, 0, -1,
+		255, -1, 1, 0
+	};
+
+	volatile extern int16_t position = 0;
+	volatile extern uint8_t old_channels = 0;
+	volatile extern uint8_t new_channels = 0;
+	volatile extern uint16_t pendulumSwitch = 0;
+	volatile extern uint16_t max_position = 76; // Assumes that 256 options is sufficient, update value after testing
+
+	volatile extern uint16_t score = 0;
+>>>>>>> Stashed changes
 
 // Ball launch
 extern const uint8_t launch_button_mask[2] = { 0, 0b00010000 };
