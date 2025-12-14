@@ -10,6 +10,9 @@
 // // Top Lanes Constants
 const uint8_t TOP_LANES_JACKPOT_BONUS = 50;
 
+//Drop target constants
+extern const uint16_t DROP_TARGET_MAX_COUNT= 1000;
+
 // // Atmega Pins
 //     // Breadcrumb I/O
 extern GPIOPin breadcrumb_pin = { &PORTC, PORTC5 };
@@ -23,7 +26,10 @@ extern GPIOPin opticalEncoder_A_pin = { &PORTC, PORTC3 };
 extern GPIOPin opticalEncoder_B_pin = { &PORTC, PORTC4 };
 
 // Ball Launch
-extern GPIOPin launch_pin = { &PORTC, PORTC4 };
+extern GPIOPin launch_pin = { &PORTD, PORTD4 };
+
+// Drop target pin
+extern GPIOPin drop_target_pin = { &PORTD, PORTD7 };
 
 // SPI Globals
 extern volatile uint8_t SPIoutput[Bank_Size] = { 0 }; // LED data
@@ -52,7 +58,9 @@ extern const uint8_t TOP_LANE0_LED[2] = { 1, 0b00000010 };
 extern const uint8_t TOP_LANE1_LED[2] = { 1, 0b00000100 };
 extern const uint8_t ramp_lights[2] = { 0, 0x01 };
 
-extern const uint8_t drop_bank_lights[2] = { 0, 0x01 };
+extern const uint8_t drop_bank_mask0[2] = { 2, 0b00000010 };
+extern const uint8_t drop_bank_mask1[2] = { 2, 0b00000100 };
+extern const uint8_t drop_bank_mask2[2] = { 2, 0b00001000 };
 
 extern const uint8_t left_lane_upper_lights[2] = { 0, 0x01 };
 extern const uint8_t right_lane_upper_lights[2] = { 0, 0x01 };
@@ -81,6 +89,6 @@ extern uint8_t flipper_button1 = 1;    // Global Flipper state variable
 extern uint8_t EOS_switch1 = 0;        //Global EOS State variable
 
 // Ball launch
-extern const uint8_t launch_button_mask[2] = { 1, 0b00010000 };
+extern const uint8_t launch_button_mask[2] = { 0, 0b00010000 };
 extern const uint8_t launch_LED[2] = { 2, 0b10000000 };
 extern const uint8_t launch_max_count = 1000;

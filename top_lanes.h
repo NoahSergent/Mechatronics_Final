@@ -14,7 +14,7 @@
 #include "scoreboard.h"
 #include "spi.h"
 
-uint8_t toInt8( auto value ) { return static_cast<uint8_t>( value ); }
+
 
 class TopLanes {
 public:
@@ -68,7 +68,7 @@ public:
             return;
         }
 
-        if ( LED_0_status == 1 & LED_1_status == 1 ) { // If both are on, award jackpot
+        if ( LED_0_status == 1 && LED_1_status == 1 ) { // If both are on, award jackpot
             jackpot();
             
         }

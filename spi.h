@@ -48,4 +48,6 @@ inline uint8_t getGPIOPin(GPIOPin target) {
     return *target.port & (1 << target.bit);
 }
 
+inline uint8_t toInt8( auto value ) { return static_cast<uint8_t>( value ); }
+
 #endif

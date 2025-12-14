@@ -14,6 +14,10 @@
 
 // // Top Lanes Constants
 extern const uint8_t TOP_LANES_JACKPOT_BONUS;
+
+//Drop target constants
+extern const uint16_t DROP_TARGET_MAX_COUNT;
+
 // 
 // // Atmega Pins
     // This struct will help with pointing to the GPIO pins
@@ -39,6 +43,9 @@ extern const uint8_t TOP_LANES_JACKPOT_BONUS;
     // Ball launch on
     extern GPIOPin launch_pin;
 
+    // Drop target pin
+    extern GPIOPin drop_target_pin;
+
 // SPI Globals
 extern volatile uint8_t SPIoutput[Bank_Size]; // LED data
 extern volatile uint8_t LEDcount;
@@ -51,6 +58,7 @@ extern volatile uint8_t circularBuff[Bank_Size][Buffer_Length];
 extern volatile uint8_t rising_edges[Bank_Size];
 extern volatile uint8_t falling_edges[Bank_Size];
 extern volatile uint8_t switch_states[Bank_Size];
+extern volatile uint8_t switchIndex;
 
 
 // // SPI Expansion Input Masks
@@ -58,6 +66,9 @@ extern volatile uint8_t switch_states[Bank_Size];
     extern const uint8_t TOP_LANE1_SWITCH[2];
 
     extern const uint8_t spinner_sm[2];
+    extern const uint8_t drop_bank_mask0[2];
+    extern const uint8_t drop_bank_mask1[2];
+    extern const uint8_t drop_bank_mask2[2];
 
     extern const uint8_t hurry_up[2];
 
@@ -66,7 +77,6 @@ extern volatile uint8_t switch_states[Bank_Size];
     extern const uint8_t TOP_LANE1_LED[2];
     extern const uint8_t ramp_lights[2];
 
-    extern const uint8_t drop_bank_lights[2];
 
     extern const uint8_t left_lane_upper_lights[2];
     extern const uint8_t right_lane_upper_lights[2];
