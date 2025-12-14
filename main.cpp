@@ -116,9 +116,9 @@ void Setup( void ) {
 
     // Newton Pendulum variables
     // CCW = +1, CW = -1, index select is (2-bit old values),(2-bit new values)
-    
+
     //DDRC &= ~(1<<PORTC4);
-	//DDRC &= ~(1<<PORTC3); // Encoder channel pins as input
+    //DDRC &= ~(1<<PORTC3); // Encoder channel pins as input
 }
 
 //uint8_t input_data;
@@ -147,10 +147,9 @@ uint16_t high_count_max = 1;
 volatile uint8_t launch_ball = 0;
 volatile uint16_t ball_launch_count = 0;
 
-
 int main( void ) {
-	Setup();
-	uint8_t spinner_score = 0;
+    Setup();
+    uint8_t spinner_score = 0;
     Scoreboard::configure();
     TopLanes::init();
     DropTarget::init();
@@ -159,6 +158,10 @@ int main( void ) {
     //const uint16_t totalPulses = 9000; // Measure total pulses on full range of Newton's Pendulum travel  [ensure (num-1) is evenly divisible by 9 to create 8 bins]
 
     Scoreboard::setScore( 0 );
+    uint8_t hurry_up_score = 100;
+    uint8_t hurryActive = 0;
+
+    uint8_t overflow = 0;
 
     while ( 1 ) {
         //PORTC ^= (1<<PORTC5);
@@ -167,6 +170,41 @@ int main( void ) {
         if ( updateFlag == 1 ) {
             debounce( readSwitches );
             Ball_launch( launch_ball, ball_launch_count );
+
+            // Hurry Up Targets
+            if ( CheckFallingEdges( right_inlane_switch ) ) {
+                hurryActive = 1;
+            }
+
+            switch ( hurryActive ) {
+            case 0:
+                // Nothing
+                break;
+            case 1:
+                hurryCount1 = 0;
+                hurryCount2 = 0;
+                overflow = 0;
+                hurryActive = 2;
+                break;
+            case 2:
+                if ( CheckRisingEdges( hurry_up ) ) {
+                    Scoreboard::addToScore( hurry_up_score );
+                    hurryActive = 0;
+                }
+                if ( hurryCount2 >= 248 ) { // toggle LED
+                    hurryCount2 = 0;
+                    // toggle LED
+                    LED_toggle( hurry_up_lights );
+                }
+                if ( hurryCount1 >= 992 ) { // exit loop
+                    hurryCount1 = 0;
+                    overflow++; //overflows once per second
+                    if ( overflow >= 5 ) {
+                        hurryActive = 0;
+                    }
+                }
+                break;
+            }
             //std::copy(std::begin(SPIoutput[0]),std::end(SPIoutput[Bank_Size]),std::begin(switch_states[0]));
 
             // Flipper
@@ -193,14 +231,14 @@ int main( void ) {
                 spinner_score = 5;
             }
 
-            // if ( CheckFallingEdges( TOP_LANE0_SWITCH ) ) {
-            //     // SPIoutput[1] |= TOP_LANE0_LED[1];
-            // 	LED_on(TOP_LANE0_LED);
-            // }
-            // if ( CheckRisingEdges( TOP_LANE0_SWITCH ) ) {
-            // 	// SPIoutput[1] &= ~TOP_LANE0_LED[1];
-            // 	LED_off(TOP_LANE0_LED);
-            // }
+            if ( CheckFallingEdges( TOP_LANE0_SWITCH ) ) {
+                // SPIoutput[1] |= TOP_LANE0_LED[1];
+            	LED_on(TOP_LANE0_LED);
+            }
+            if ( CheckRisingEdges( TOP_LANE0_SWITCH ) ) {
+            	// SPIoutput[1] &= ~TOP_LANE0_LED[1];
+            	LED_off(TOP_LANE0_LED);
+            }
             UpdateFlipper0();
             UpdateFlipper1();
 
@@ -240,34 +278,32 @@ int main( void ) {
             // previous_falling_edges = falling_edges[1];
 
             updateFlag = 0;
-			
         }
-		
-		// if(CheckRisingEdges(spinner_sm)||CheckFallingEdges(spinner_sm)){
-		// 	//Scoreboard::addToScore((uint16_t) 5);
-		// }
+
+        // if(CheckRisingEdges(spinner_sm)||CheckFallingEdges(spinner_sm)){
+        // 	//Scoreboard::addToScore((uint16_t) 5);
+        // }
 
         pendulum();
-		//Scoreboard::setScore(score);
-		
-		Scoreboard::sendScoreInterrupt();
+        //Scoreboard::setScore(score);
+        Scoreboard::sendScoreInterrupt();
     }
 }
 
 void debounce( volatile uint8_t noisyData[Bank_Size] ) {
-    //static 
+    //static
     //static uint8_t bankIndex = 0;
 
     uint8_t stable_high[Bank_Size];
-    for ( uint8_t i = 0; i < Bank_Size; i++) {
+    for ( uint8_t i = 0; i < Bank_Size; i++ ) {
         stable_high[i] = 0xFF;                       //Initialize temporary stable_high all high
         circularBuff[i][switchIndex] = noisyData[i]; // i was bankIndex
     }
     uint8_t stable_low[Bank_Size] = { 0 }; //Initialize temporary stable_low all low
 
     //Loop through all historical switch samples to check for stable highs and lows
-    for ( uint8_t j = 0; j < Bank_Size; j++) {
-        for ( uint8_t k = 0; k < Buffer_Length; k++) {
+    for ( uint8_t j = 0; j < Bank_Size; j++ ) {
+        for ( uint8_t k = 0; k < Buffer_Length; k++ ) {
             //"And" for stable high (all 1's will produce "1" for stable high)
             stable_high[j] &= circularBuff[j][k];
             //"Or" for stable low (all 0's will produce "0" for stable low)
@@ -285,86 +321,85 @@ void debounce( volatile uint8_t noisyData[Bank_Size] ) {
 }
 
 void pendulum( void ) {
-	new_channels = (PINC & ((1<<PINC3) | (1<<PINC4))) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction. opticalEncoder_A_pin[1]
-	//switch_states[2] &
-	
-	volatile uint8_t encoderLUTindex = old_channels | new_channels;
-	volatile int16_t direction = encoder_table[encoderLUTindex];
-	
-	//Scoreboard::setScore(encoderLUTindex);
-	
-	if(direction==255) { //Check for error
-		//PORTC ^= (1<<breadcrumb_pin); // Error is occurring
-		
-		position +=0;
-		//SPIoutput[2] = 0b00000000;
-		} else if (direction>0) {
-		// CCW direction - LEDs should be increasing
-		position += direction; //Update position value
-		// divide range of encoder to calculate number of LEDs active (assume 90 degree travel range)
-		//LEDproportion = (position * 8) / totalPulses; // multiply by 8 LEDs, then divide
-		//LED_on(newton_lights)
-		//PORTC ^= (1<<breadcrumb_pin);
-		}else if(direction>0){
-		// CW direction - LEDs should be decreasing
-		position += direction; //Update position value
-		
-		}else{
-		// No change (error if direction is not 0)
-		position += direction;
-		
-		}
-	
-	//Shift and save current channels as old for next time
-	old_channels = new_channels<<2;
-	
-	pendulumSwitch = position / 16;	// 8-bit integer division from 16-bit number (overflow potential)
-	
-	// SPI port C broken out
-	//SPIoutput[2] = pendulumSwitch; // works with ~readSwitches[z];
-	//SPIoutput[2] = position;
-	
-		switch(pendulumSwitch) {
-			case 0: // LEDs off
-			SPIoutput[2] = 0b00000000;
-			//score_update = 0;
-			max_position = 0;
-			break;
-			case 1:
-			//LED_set(newton_lights,pendulumSwitch);
-			SPIoutput[2] = 0b00000001;
-			break;
-			case 2:
-			SPIoutput[2] = 0b00000011;
-			break;
-			case 3:
-			SPIoutput[2] = 0b00000111;
-			break;
-			case 4:
-			SPIoutput[2] = 0b00001111;
-			break;
-			case 5:
-			SPIoutput[2] = 0b00011111;
-			break;
-			case 6:
-			SPIoutput[2] = 0b00111111;
-			break;
-			case 7:
-			SPIoutput[2] = 0b01111111;
-			break;
-			case 8:
-			SPIoutput[2] = 0b11111111;
-			break;
-		}
-		
-		if (max_position!=pendulumSwitch){
-			//score += pendulumSwitch*2;
-			Scoreboard::addToScore((uint16_t)(pendulumSwitch*2));
-			//Scoreboard::setScore(pendulumSwitch);
-		}
-		max_position=pendulumSwitch;
-	
-	/*
+    new_channels = ( PINC & ( ( 1 << PINC3 ) | ( 1 << PINC4 ) ) ) >> 3; // assumes channel A and channel B are next to one another on a port. Also the pin order affects ccw/cw direction. opticalEncoder_A_pin[1]
+    //switch_states[2] &
+
+    volatile uint8_t encoderLUTindex = old_channels | new_channels;
+    volatile int16_t direction = encoder_table[encoderLUTindex];
+
+    //Scoreboard::setScore(encoderLUTindex);
+
+    if ( direction == 255 ) { //Check for error
+        //PORTC ^= (1<<breadcrumb_pin); // Error is occurring
+
+        position += 0;
+        //SPIoutput[2] = 0b00000000;
+    } else if ( direction > 0 ) {
+        // CCW direction - LEDs should be increasing
+        position += direction; //Update position value
+        // divide range of encoder to calculate number of LEDs active (assume 90 degree travel range)
+        //LEDproportion = (position * 8) / totalPulses; // multiply by 8 LEDs, then divide
+        //LED_on(newton_lights)
+        //PORTC ^= (1<<breadcrumb_pin);
+    } else if ( direction > 0 ) {
+        // CW direction - LEDs should be decreasing
+        position += direction; //Update position value
+
+    } else {
+        // No change (error if direction is not 0)
+        position += direction;
+    }
+
+    //Shift and save current channels as old for next time
+    old_channels = new_channels << 2;
+
+    pendulumSwitch = position / 16; // 8-bit integer division from 16-bit number (overflow potential)
+
+    // SPI port C broken out
+    //SPIoutput[2] = pendulumSwitch; // works with ~readSwitches[z];
+    //SPIoutput[2] = position;
+
+    switch ( pendulumSwitch ) {
+    case 0: // LEDs off
+        SPIoutput[2] = 0b00000000;
+        //score_update = 0;
+        max_position = 0;
+        break;
+    case 1:
+        //LED_set(newton_lights,pendulumSwitch);
+        SPIoutput[2] = 0b00000001;
+        break;
+    case 2:
+        SPIoutput[2] = 0b00000011;
+        break;
+    case 3:
+        SPIoutput[2] = 0b00000111;
+        break;
+    case 4:
+        SPIoutput[2] = 0b00001111;
+        break;
+    case 5:
+        SPIoutput[2] = 0b00011111;
+        break;
+    case 6:
+        SPIoutput[2] = 0b00111111;
+        break;
+    case 7:
+        SPIoutput[2] = 0b01111111;
+        break;
+    case 8:
+        SPIoutput[2] = 0b11111111;
+        break;
+    }
+
+    if ( max_position != pendulumSwitch ) {
+        //score += pendulumSwitch*2;
+        Scoreboard::addToScore( ( uint16_t )( pendulumSwitch * 2 ) );
+        //Scoreboard::setScore(pendulumSwitch);
+    }
+    max_position = pendulumSwitch;
+
+    /*
 	if (PINC&(1<<PINC3)){
 		SPIoutput[2] = 0b11111111;
 		PORTC ^= (1<<PORTC5);
@@ -510,6 +545,9 @@ void UpdateFlipper1() {
 ISR( TIMER1_COMPA_vect ) {
     //PORTC ^= (1<<breadcrumb_pin); // Toggle breadcrumb pin
     DropTarget::incrementCount();
+    // Hurry Up
+    hurryCount1++;
+    hurryCount2++;
     clearGPIOPin( switch_latch_pin ); // Falling edge
     setGPIOPin( switch_latch_pin );   // Rising edge
     SPDR = SPIoutput[LEDcount];       // SPIoutput[LEDcount];//input_data;//Start Serial Transfer

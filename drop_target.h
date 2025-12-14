@@ -35,6 +35,7 @@ private:
     static void fireSolenoid();
     static const uint8_t *target_mask_arr[3];
     static TargetState previous_states[3];
+    static uint16_t score_to_add_;
 };
 
 #endif

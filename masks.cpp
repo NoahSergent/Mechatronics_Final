@@ -43,6 +43,7 @@ extern volatile uint8_t circularBuff[Bank_Size][Buffer_Length] = { 0 };
 extern volatile uint8_t rising_edges[Bank_Size] = { 0 };
 extern volatile uint8_t falling_edges[Bank_Size] = { 0 };
 extern volatile uint8_t switch_states[Bank_Size] = { 0 };
+extern volatile uint8_t switchIndex = 0;
 
 // SPI Expansion Input Masks TODO redefine after checking switch location on pinball machine
 extern const uint8_t TOP_LANE0_SWITCH[2] = { 1, 0b00000010 }; // Bank B pin 1
@@ -50,7 +51,11 @@ extern const uint8_t TOP_LANE1_SWITCH[2] = { 1, 0b00000100 }; // Bank B pin 2
 
     extern const uint8_t spinner_sm[2] = { 1, 0x20 }; // finished
 
-extern const uint8_t hurry_up[2] = { 0, 0x80 };
+extern const uint8_t right_inlane_switch[2] = { 0, 0b01000000 }; //new
+extern const uint8_t hurry_up_lights[2] = { 1, 0b00010000 }; //new
+extern volatile uint16_t hurryCount1 = 0; //new
+extern volatile uint16_t hurryCount2 = 0; //new
+extern const uint8_t hurry_up[2] = { 1, 0b00010000 }; //updated
 
 // SPI Expansion Output Masks TODO redefine after checking LED locations on pinball machine (include current limiting resistors)
 
@@ -108,3 +113,4 @@ extern const uint8_t standup_lights[2] = { 0, 0x01 };
 extern const uint8_t launch_button_mask[2] = { 0, 0b00010000 };
 extern const uint8_t launch_LED[2] = { 2, 0b10000000 };
 extern const uint8_t launch_max_count = 1000;
+

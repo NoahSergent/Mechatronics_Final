@@ -120,6 +120,12 @@ extern volatile uint8_t switchIndex;
 	volatile extern uint16_t max_position; // Assumes that 256 options is sufficient, update value after testing
 	
 	volatile extern uint16_t score;
+
+// Hurry Up
+extern const uint8_t right_inlane_switch[2]; // new
+extern const uint8_t hurry_up_lights[2]; //new
+extern volatile uint16_t hurryCount1; //new
+extern volatile uint16_t hurryCount2; //new
 	
 
 #endif
